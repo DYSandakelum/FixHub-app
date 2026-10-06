@@ -84,10 +84,13 @@ export default function JobCompletionScreen() {
                     <Text style={styles.navIcon}>💰</Text>
                     <Text style={styles.navLabel}>Earnings</Text>
                 </View>
-                <View style={styles.navItemActive}>
-                    <Text style={styles.navIconActive}>👤</Text>
-                    <Text style={styles.navLabelActive}>Profile</Text>
-                </View>
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() => router.push('/(provider)/provider-profile-setup')}
+                >
+                    <Text style={styles.navIcon}>👤</Text>
+                    <Text style={styles.navLabel}>Profile</Text>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
