@@ -1,11 +1,13 @@
 import { useRouter } from 'expo-router';
 import {
     Image,
+    Linking,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -85,14 +87,29 @@ export default function RequestDetailsScreen() {
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>Location Map</Text>
                 </View>
-                <View style={styles.mapContainer}>
+                <TouchableOpacity
+                    style={styles.mapTouchableContainer}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+                        const latLng = `47.6062,-122.3321`;
+                        const label = 'Job Location';
+                        const url = Platform.select({
+                            ios: `${scheme}${label}@${latLng}`,
+                            android: `${scheme}${latLng}(${label})`
+                        }) || '';
+                        Linking.openURL(url);
+                    }}
+                >
                     <Image
-                        source={{ uri: 'https://maps.googleapis.com/maps/api/staticmap?center=Seattle,WA&zoom=14&size=600x300&maptype=roadmap' }}
-                        style={styles.mapImage}
+                        source={{ uri: 'https://staticmap.openstreetmap.de/staticmap.php?center=47.6062,-122.3321&zoom=14&size=600x300&markers=47.6062,-122.3321,red-pushpin' }}
+                        style={{ width: '100%', height: '100%', position: 'absolute' }}
                         resizeMode="cover"
-                    // Fallback bg color if image fails to load without key
                     />
-                </View>
+                    <View style={styles.mapOverlay}>
+                        <Text style={styles.mapOverlayText}>Open in Maps</Text>
+                    </View>
+                </TouchableOpacity>
 
                 {/* ── Description of Work ── */}
                 <View style={styles.sectionHeader}>
@@ -295,16 +312,30 @@ const styles = StyleSheet.create({
     },
 
     // Map Configuration
-    mapContainer: {
+    mapTouchableContainer: {
         height: 120,
         borderRadius: 16,
         overflow: 'hidden',
         marginBottom: 20,
-        backgroundColor: '#E5E7EB', // fallback color
+        backgroundColor: '#E5E7EB',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    mapImage: {
-        width: '100%',
-        height: '100%',
+    mapOverlay: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    mapOverlayText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#2563EB',
     },
 
     // Description
