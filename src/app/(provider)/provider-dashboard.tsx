@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Switch,
@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type JobRequest = {
@@ -45,6 +46,8 @@ const JOB_REQUESTS: JobRequest[] = [
 
 // ─── Job Request Card ─────────────────────────────────────────────────────────
 function JobRequestCard({ job }: { job: JobRequest }) {
+    const router = useRouter();
+
     return (
         <View style={styles.jobCard}>
             <View style={styles.jobCardHeader}>
@@ -60,7 +63,10 @@ function JobRequestCard({ job }: { job: JobRequest }) {
             </View>
 
             <View style={styles.jobCardActions}>
-                <TouchableOpacity style={styles.detailsButton}>
+                <TouchableOpacity
+                    style={styles.detailsButton}
+                    onPress={() => router.push({ pathname: '/(provider)/request-details', params: { id: job.id } })}
+                >
                     <Text style={styles.detailsButtonText}>Details</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.acceptButton}>
