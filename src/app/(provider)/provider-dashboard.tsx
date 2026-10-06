@@ -79,17 +79,24 @@ function JobRequestCard({ job }: { job: JobRequest }) {
 
 // ─── Bottom Tab Bar ───────────────────────────────────────────────────────────
 function BottomTabBar({ activeTab }: { activeTab: string }) {
+    const router = useRouter();
     const tabs = [
-        { name: 'Dashboard', icon: '⊞' },
-        { name: 'Schedule', icon: '📅' },
-        { name: 'Earnings', icon: '💳' },
-        { name: 'Profile', icon: '👤' },
+        { name: 'Dashboard', icon: '⊞', route: '/(provider)/provider-dashboard' },
+        { name: 'Schedule', icon: '📅', route: '' },
+        { name: 'Earnings', icon: '💳', route: '' },
+        { name: 'Profile', icon: '👤', route: '/(provider)/provider-profile-setup' },
     ];
 
     return (
         <View style={styles.tabBar}>
             {tabs.map((tab) => (
-                <TouchableOpacity key={tab.name} style={styles.tabItem}>
+                <TouchableOpacity
+                    key={tab.name}
+                    style={styles.tabItem}
+                    onPress={() => {
+                        if (tab.route) router.push(tab.route as any);
+                    }}
+                >
                     <Text style={[styles.tabIcon, activeTab === tab.name && styles.tabActiveIcon]}>
                         {tab.icon}
                     </Text>
