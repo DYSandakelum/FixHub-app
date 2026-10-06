@@ -81,11 +81,11 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 12,
         borderWidth: 1,
-        borderColor: '#1D9E75',
+        borderColor: '#2563EB',
         borderRadius: 8,
         alignItems: 'center',
     },
-    categoryText: { color: '#1D9E75', fontWeight: '600' },
+    categoryText: { color: '#2563EB', fontWeight: '600' },
     sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
     providerCard: {
         padding: 12,
@@ -96,5 +96,5 @@ const styles = StyleSheet.create({
     },
     providerName: { fontSize: 15, fontWeight: '600' },
     providerType: { color: '#60646C' },
-    providerRate: { color: '#1D9E75', fontWeight: '600', marginTop: 4 },
+    providerRate: { color: '#2563EB', fontWeight: '600', marginTop: 4 },
 });

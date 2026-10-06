@@ -12,7 +12,7 @@ export const Colors = {
     background: '#FFFFFF',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
-    primary: '#1D9E75',   // main brand color — buttons, active states
+    primary: '#2563EB',   // main brand color — buttons, active states
     accent: '#EF9F27',    // used for pricing highlights, alerts
   },
   dark: {
@@ -21,7 +21,7 @@ export const Colors = {
     background: '#121212',
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
-    primary: '#2FBF8F',
+    primary: '#3B82F6',
     accent: '#F5B24D',
   },
 } as const;

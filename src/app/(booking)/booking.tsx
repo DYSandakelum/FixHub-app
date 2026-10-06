@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     priceCard: { backgroundColor: '#FDF1E0', padding: 16, borderRadius: 8, marginTop: 10, marginBottom: 24 },
     priceLabel: { color: '#60646C', fontSize: 12 },
     priceValue: { fontSize: 22, fontWeight: '700', color: '#EF9F27' },
-    confirmButton: { backgroundColor: '#1D9E75', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 40 },
+    confirmButton: { backgroundColor: '#2563EB', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 40 },
     confirmButtonDisabled: { opacity: 0.6 },
     confirmButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
 });

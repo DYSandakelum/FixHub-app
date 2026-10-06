@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     header: { alignItems: 'center', marginBottom: 20 },
     avatarPlaceholder: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E0E1E6', marginBottom: 12 },
     name: { fontSize: 18, fontWeight: '600' },
-    verifiedBadge: { backgroundColor: '#1D9E75', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginTop: 6 },
+    verifiedBadge: { backgroundColor: '#2563EB', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginTop: 6 },
     verifiedText: { color: '#fff', fontSize: 12, fontWeight: '600' },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
     infoLabel: { color: '#60646C' },
@@ -91,6 +91,6 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 15, fontWeight: '600', marginTop: 20, marginBottom: 8 },
     bio: { color: '#333', lineHeight: 20 },
     noReviews: { color: '#999', fontStyle: 'italic' },
-    bookButton: { backgroundColor: '#1D9E75', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 30, marginBottom: 40 },
+    bookButton: { backgroundColor: '#2563EB', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 30, marginBottom: 40 },
     bookButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
 });
