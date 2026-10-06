@@ -126,7 +126,7 @@ export default function RequestDetailsScreen() {
                 <TouchableOpacity style={styles.declineButton} onPress={() => router.back()}>
                     <Text style={styles.declineButtonText}>Decline</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.acceptButton}>
+                <TouchableOpacity style={styles.acceptButton} onPress={() => router.push('/(provider)/job-completion')}>
                     <Text style={styles.acceptButtonText}>Accept Request</Text>
                 </TouchableOpacity>
             </View>
