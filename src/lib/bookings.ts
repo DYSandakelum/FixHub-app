@@ -5,7 +5,7 @@ export async function getProviders() {
     const { data, error } = await supabase
         .from('providers')
         .select('*, users(name)')
-        .eq('verified', true);
+
 
     if (error) {
         console.error('Error fetching providers:', error.message);
@@ -104,7 +104,7 @@ export async function searchProviders({
     let query = supabase
         .from('providers')
         .select('*, users(name)')
-        .eq('verified', true);
+
 
     if (serviceType) {
         query = query.eq('service_type', serviceType);

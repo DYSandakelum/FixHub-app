@@ -49,7 +49,18 @@ export default function SearchResultsScreen() {
                             style={styles.providerCard}
                             onPress={() => router.push(`/(booking)/provider-profile?id=${item.id}`)}
                         >
-                            <Text style={styles.providerName}>{item.users?.name ?? 'Unnamed Provider'}</Text>
+                            <View style={styles.cardHeader}>
+                                <Text style={styles.providerName}>{item.users?.name ?? 'Unnamed Provider'}</Text>
+                                {item.verified ? (
+                                    <View style={styles.verifiedBadge}>
+                                        <Text style={styles.verifiedBadgeText}>Verified</Text>
+                                    </View>
+                                ) : (
+                                    <View style={styles.unverifiedBadge}>
+                                        <Text style={styles.unverifiedBadgeText}>Not Verified</Text>
+                                    </View>
+                                )}
+                            </View>
                             <Text style={styles.providerType}>{item.service_type}</Text>
                             <Text style={styles.providerRate}>Rs. {item.rate}</Text>
                         </TouchableOpacity>
@@ -123,4 +134,9 @@ const styles = StyleSheet.create({
     optionTextActive: { color: '#fff', fontWeight: '600' },
     applyButton: { backgroundColor: '#2563EB', padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
     applyButtonText: { color: '#fff', fontWeight: '600' },
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    verifiedBadge: { backgroundColor: '#2563EB', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+    verifiedBadgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+    unverifiedBadge: { backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1, borderColor: '#DC2626' },
+    unverifiedBadgeText: { color: '#DC2626', fontSize: 11, fontWeight: '600' },
 });

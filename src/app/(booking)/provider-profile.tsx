@@ -41,9 +41,13 @@ export default function ProviderProfileScreen() {
             <View style={styles.header}>
                 <View style={styles.avatarPlaceholder} />
                 <Text style={styles.name}>{provider.users?.name ?? 'Unnamed Provider'}</Text>
-                {provider.verified && (
+                {provider.verified ? (
                     <View style={styles.verifiedBadge}>
-                        <Text style={styles.verifiedText}>✓ Verified</Text>
+                        <Text style={styles.verifiedText}>Verified</Text>
+                    </View>
+                ) : (
+                    <View style={styles.unverifiedBadge}>
+                        <Text style={styles.unverifiedText}>Not Verified</Text>
                     </View>
                 )}
             </View>
@@ -93,4 +97,6 @@ const styles = StyleSheet.create({
     noReviews: { color: '#999', fontStyle: 'italic' },
     bookButton: { backgroundColor: '#2563EB', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 30, marginBottom: 40 },
     bookButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+    unverifiedBadge: { backgroundColor: '#FEE2E2', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginTop: 6, borderWidth: 1, borderColor: '#DC2626' },
+    unverifiedText: { color: '#DC2626', fontSize: 12, fontWeight: '600' },
 });
