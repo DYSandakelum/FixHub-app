@@ -83,7 +83,7 @@ function BottomTabBar({ activeTab }: { activeTab: string }) {
     const tabs = [
         { name: 'Dashboard', icon: '⊞', route: '/(provider)/provider-dashboard' },
         { name: 'Schedule', icon: '📅', route: '' },
-        { name: 'Earnings', icon: '💳', route: '' },
+        { name: 'Earnings', icon: '💳', route: '/(provider)/provider-earnings' },
         { name: 'Profile', icon: '👤', route: '/(provider)/provider-profile-setup' },
     ];
 
