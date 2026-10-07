@@ -1,11 +1,13 @@
 import { useRouter } from 'expo-router';
 import {
+    Dimensions,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BarChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type Payment = {
@@ -47,6 +49,35 @@ export default function ProviderEarningsScreen() {
                         <Text style={styles.summaryPeriod}>This Month</Text>
                     </View>
                     <Text style={styles.totalEarnings}>LKR 42,500</Text>
+
+                    {/* ── Earnings Chart ── */}
+                    <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                        <BarChart
+                            data={{
+                                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                                datasets: [{ data: [2.5, 4.2, 3.0, 8.0, 5.0, 12, 7.8] }]
+                            }}
+                            width={Dimensions.get("window").width - 85}
+                            height={180}
+                            yAxisLabel="Rs."
+                            yAxisSuffix="k"
+                            chartConfig={{
+                                backgroundColor: "#ffffff",
+                                backgroundGradientFrom: "#ffffff",
+                                backgroundGradientTo: "#ffffff",
+                                decimalPlaces: 0,
+                                color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+                                labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                                style: { borderRadius: 16 },
+                                barPercentage: 0.6,
+                            }}
+                            style={{ borderRadius: 16, paddingRight: 0 }}
+                            fromZero={true}
+                            withHorizontalLabels={true}
+                            withInnerLines={false}
+                            showValuesOnTopOfBars={false}
+                        />
+                    </View>
 
                     <View style={styles.statsRow}>
                         <Text style={styles.statText}>12 Jobs Completed</Text>
