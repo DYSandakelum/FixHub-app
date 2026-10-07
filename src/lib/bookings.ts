@@ -121,3 +121,18 @@ export async function searchProviders({
     }
     return data;
 }
+
+// ---- READ: Get all bookings for a specific customer ----
+export async function getCustomerBookings(customerId: string) {
+    const { data, error } = await supabase
+        .from('bookings')
+        .select('*, providers(service_type, users(name))')
+        .eq('customer_id', customerId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching customer bookings:', error.message);
+        return [];
+    }
+    return data;
+}

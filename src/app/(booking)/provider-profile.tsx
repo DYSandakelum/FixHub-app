@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { getProviderById } from '../../lib/bookings';
 
 export default function ProviderProfileScreen() {
@@ -38,6 +39,7 @@ export default function ProviderProfileScreen() {
 
     return (
         <ScrollView style={styles.container}>
+            <BackButton />
             <View style={styles.header}>
                 <View style={styles.avatarPlaceholder} />
                 <Text style={styles.name}>{provider.users?.name ?? 'Unnamed Provider'}</Text>

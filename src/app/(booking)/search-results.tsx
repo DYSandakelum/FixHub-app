@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { searchProviders } from '../../lib/bookings';
 
 export default function SearchResultsScreen() {
@@ -31,6 +32,7 @@ export default function SearchResultsScreen() {
 
     return (
         <View style={styles.container}>
+            <BackButton />
             <View style={styles.headerRow}>
                 <Text style={styles.title}>Search Results</Text>
                 <TouchableOpacity onPress={() => setFilterVisible(true)}>

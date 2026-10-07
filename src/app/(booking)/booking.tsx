@@ -2,6 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BackButton from '../../components/BackButton';
 import { createBooking, getProviderById } from '../../lib/bookings';
 
 export default function BookingScreen() {
@@ -89,6 +90,7 @@ export default function BookingScreen() {
 
     return (
         <ScrollView style={styles.container}>
+            <BackButton />
             <View style={styles.providerCard}>
                 <Text style={styles.providerName}>{provider.users?.name ?? 'Unnamed Provider'}</Text>
                 <Text style={styles.providerType}>{provider.service_type}</Text>
