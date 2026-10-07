@@ -1,4 +1,6 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
     Dimensions,
     ScrollView,
@@ -27,6 +29,18 @@ const PAYMENT_HISTORY: Payment[] = [
 
 export default function ProviderEarningsScreen() {
     const router = useRouter();
+    const [date, setDate] = useState(new Date());
+    const [showPicker, setShowPicker] = useState(false);
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        setShowPicker(false);
+        if (selectedDate) {
+            setDate(selectedDate);
+        }
+    };
+
+    // Format date like "Sep 2026"
+    const formattedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -46,8 +60,21 @@ export default function ProviderEarningsScreen() {
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryLabel}>Total Earnings</Text>
-                        <Text style={styles.summaryPeriod}>This Month</Text>
+                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowPicker(true)}>
+                            <Text style={styles.filterIcon}>📅</Text>
+                            <Text style={styles.summaryPeriod}>{formattedDate} ▾</Text>
+                        </TouchableOpacity>
                     </View>
+
+                    {showPicker && (
+                        <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )}
+
                     <Text style={styles.totalEarnings}>LKR 42,500</Text>
 
                     {/* ── Earnings Chart ── */}
@@ -123,10 +150,10 @@ export default function ProviderEarningsScreen() {
                     <Text style={styles.navIcon}>🏠</Text>
                     <Text style={styles.navLabel}>Home</Text>
                 </TouchableOpacity>
-                <View style={styles.navItem}>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-schedule')}>
                     <Text style={styles.navIcon}>📅</Text>
                     <Text style={styles.navLabel}>Schedule</Text>
-                </View>
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
                     <Text style={styles.navIconActive}>💰</Text>
                     <Text style={styles.navLabelActive}>Earnings</Text>
@@ -195,6 +222,16 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     summaryLabel: { fontSize: 13, fontWeight: '700', color: '#6B7280' },
+    filterButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        gap: 6,
+    },
+    filterIcon: { fontSize: 12 },
     summaryPeriod: { fontSize: 13, fontWeight: '600', color: '#2563EB' },
     totalEarnings: { fontSize: 32, fontWeight: '800', color: '#111827', marginBottom: 12 },
     statsRow: { flexDirection: 'row', gap: 16, marginBottom: 16 },
