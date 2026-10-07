@@ -82,7 +82,7 @@ function BottomTabBar({ activeTab }: { activeTab: string }) {
     const router = useRouter();
     const tabs = [
         { name: 'Dashboard', icon: '⊞', route: '/(provider)/provider-dashboard' },
-        { name: 'Schedule', icon: '📅', route: '' },
+        { name: 'Schedule', icon: '📅', route: '/(provider)/provider-schedule' },
         { name: 'Earnings', icon: '💳', route: '/(provider)/provider-earnings' },
         { name: 'Profile', icon: '👤', route: '/(provider)/provider-profile-setup' },
     ];
