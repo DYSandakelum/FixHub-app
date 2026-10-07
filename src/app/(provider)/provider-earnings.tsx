@@ -39,6 +39,37 @@ export default function ProviderEarningsScreen() {
     const [tempEndDate, setTempEndDate] = useState<string | null>(null);
     const [markedDates, setMarkedDates] = useState<any>({});
 
+    const openCalendar = () => {
+        // Adjust for local timezones so we don't get yesterday's date
+        const offsetS = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+        const offsetE = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+        const sString = offsetS.toISOString().split('T')[0];
+        const eString = offsetE.toISOString().split('T')[0];
+
+        setTempStartDate(sString);
+        setTempEndDate(eString);
+
+        if (sString === eString) {
+            setMarkedDates({
+                [sString]: { startingDay: true, endingDay: true, color: '#2563EB', textColor: 'white' }
+            });
+        } else {
+            let marks: any = {
+                [sString]: { startingDay: true, color: '#2563EB', textColor: 'white' },
+            };
+            let curr = new Date(sString);
+            curr.setDate(curr.getDate() + 1);
+            const endD = new Date(eString);
+            while (curr < endD) {
+                marks[curr.toISOString().split('T')[0]] = { color: '#EFF6FF', textColor: '#111827' };
+                curr.setDate(curr.getDate() + 1);
+            }
+            marks[eString] = { endingDay: true, color: '#2563EB', textColor: 'white' };
+            setMarkedDates(marks);
+        }
+        setShowCalendar(true);
+    };
+
     const handleDayPress = (day: any) => {
         if (!tempStartDate || (tempStartDate && tempEndDate)) {
             setTempStartDate(day.dateString);
@@ -144,7 +175,7 @@ export default function ProviderEarningsScreen() {
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryLabel}>Total Earnings</Text>
-                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowCalendar(true)}>
+                        <TouchableOpacity style={styles.filterButton} onPress={openCalendar}>
                             <Text style={styles.filterIcon}>📅</Text>
                             <Text style={styles.summaryPeriod}>{formatDate(startDate)} - {formatDate(endDate)}</Text>
                         </TouchableOpacity>
