@@ -1,14 +1,15 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
     Dimensions,
+    Modal,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import { BarChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,18 +30,101 @@ const PAYMENT_HISTORY: Payment[] = [
 
 export default function ProviderEarningsScreen() {
     const router = useRouter();
-    const [date, setDate] = useState(new Date());
-    const [showPicker, setShowPicker] = useState(false);
+    const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
+    const [endDate, setEndDate] = useState(new Date());
+    const [showCalendar, setShowCalendar] = useState(false);
 
-    const onDateChange = (event: any, selectedDate?: Date) => {
-        setShowPicker(false);
-        if (selectedDate) {
-            setDate(selectedDate);
+    // Range picker states
+    const [tempStartDate, setTempStartDate] = useState<string | null>(null);
+    const [tempEndDate, setTempEndDate] = useState<string | null>(null);
+    const [markedDates, setMarkedDates] = useState<any>({});
+
+    const handleDayPress = (day: any) => {
+        if (!tempStartDate || (tempStartDate && tempEndDate)) {
+            setTempStartDate(day.dateString);
+            setTempEndDate(null);
+            setMarkedDates({
+                [day.dateString]: { startingDay: true, color: '#2563EB', textColor: 'white' }
+            });
+        } else if (tempStartDate && !tempEndDate) {
+            const start = new Date(tempStartDate);
+            const end = new Date(day.dateString);
+            if (end < start) {
+                setTempStartDate(day.dateString);
+                setMarkedDates({ [day.dateString]: { startingDay: true, color: '#2563EB', textColor: 'white' } });
+                return;
+            }
+
+            let marks: any = {
+                [tempStartDate]: { startingDay: true, color: '#2563EB', textColor: 'white' },
+            };
+
+            let curr = new Date(start);
+            curr.setDate(curr.getDate() + 1);
+            while (curr < end) {
+                marks[curr.toISOString().split('T')[0]] = { color: '#EFF6FF', textColor: '#111827' };
+                curr.setDate(curr.getDate() + 1);
+            }
+            marks[day.dateString] = { endingDay: true, color: '#2563EB', textColor: 'white' };
+
+            setTempEndDate(day.dateString);
+            setMarkedDates(marks);
         }
     };
 
-    // Format date like "Sep 2026"
-    const formattedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const applyDateRange = () => {
+        if (tempStartDate && tempEndDate) {
+            setStartDate(new Date(tempStartDate));
+            setEndDate(new Date(tempEndDate));
+        } else if (tempStartDate) {
+            setStartDate(new Date(tempStartDate));
+            setEndDate(new Date(tempStartDate));
+        }
+        setShowCalendar(false);
+    };
+
+    const formatDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    const formatModalDate = (dString: string | null) => {
+        if (!dString) return 'Select';
+        const d = new Date(dString);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+
+    const getStage = () => {
+        if (!tempStartDate) return { step: 1, title: '1. Pick start' };
+        if (tempStartDate && !tempEndDate) return { step: 2, title: '2. Pick end' };
+        return { step: 3, title: '3. Done' };
+    };
+
+    const getDaysSelected = () => {
+        if (tempStartDate && tempEndDate) {
+            const start = new Date(tempStartDate);
+            const end = new Date(tempEndDate);
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return diffDays;
+        }
+        return 0;
+    };
+
+    // Dynamic Mock Data Calculation based on selected dates
+    const filteredHistory = PAYMENT_HISTORY.filter(item => {
+        const itemDate = new Date(item.date);
+        // set hours to 0 for accurate date comparison
+        const start = new Date(startDate); start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate); end.setHours(23, 59, 59, 999);
+        return itemDate >= start && itemDate <= end;
+    });
+
+    const dynamicChartData = [2.5, 4.2, 3.0, 8.0, 5.0, 12, 7.8].map(v => {
+        // Just mocking chart changes dynamically based on selected date ranges
+        const scale = ((startDate.getDate() + endDate.getDate()) % 5 + 5) / 5;
+        return v * scale;
+    });
+
+    const totalEarningsVal = filteredHistory.reduce((acc, curr) => acc + curr.amount, 0);
+    const totalEarningsStr = totalEarningsVal > 0 ? `LKR ${totalEarningsVal.toLocaleString()}` : `LKR 42,500`;
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -60,29 +144,71 @@ export default function ProviderEarningsScreen() {
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryLabel}>Total Earnings</Text>
-                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowPicker(true)}>
+                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowCalendar(true)}>
                             <Text style={styles.filterIcon}>📅</Text>
-                            <Text style={styles.summaryPeriod}>{formattedDate} ▾</Text>
+                            <Text style={styles.summaryPeriod}>{formatDate(startDate)} - {formatDate(endDate)}</Text>
                         </TouchableOpacity>
                     </View>
 
-                    {showPicker && (
-                        <DateTimePicker
-                            value={date}
-                            mode="date"
-                            display="default"
-                            onChange={onDateChange}
-                        />
-                    )}
+                    <Modal visible={showCalendar} animationType="fade" transparent={true}>
+                        <View style={styles.modalOverlayDark}>
+                            <View style={styles.calendarContainerDark}>
+                                <Text style={styles.calendarTitleDark}>{getStage().title}</Text>
 
-                    <Text style={styles.totalEarnings}>LKR 42,500</Text>
+                                <View style={styles.dateFieldsContainer}>
+                                    <View style={[styles.dateField, getStage().step === 1 && styles.dateFieldActive]}>
+                                        <Text style={styles.dateFieldLabel}>Start</Text>
+                                        <Text style={styles.dateFieldValue}>{formatModalDate(tempStartDate)}</Text>
+                                    </View>
+                                    <View style={[styles.dateField, getStage().step === 2 && styles.dateFieldActive]}>
+                                        <Text style={styles.dateFieldLabel}>End</Text>
+                                        <Text style={styles.dateFieldValue}>{formatModalDate(tempEndDate)}</Text>
+                                    </View>
+                                </View>
+
+                                {getStage().step === 1 && (
+                                    <View style={styles.hintBoxBlue}>
+                                        <Text style={styles.hintTextBlue}>Tap a start date</Text>
+                                    </View>
+                                )}
+                                {getStage().step === 2 && (
+                                    <View style={styles.hintBoxBlue}>
+                                        <Text style={styles.hintTextBlue}>Now tap an end date</Text>
+                                    </View>
+                                )}
+                                {getStage().step === 3 && (
+                                    <View style={styles.hintBoxGreen}>
+                                        <Text style={styles.hintTextGreen}>{getDaysSelected()} days selected</Text>
+                                    </View>
+                                )}
+
+                                <Calendar
+                                    markingType={'period'}
+                                    markedDates={markedDates}
+                                    onDayPress={handleDayPress}
+                                    theme={{ arrowColor: '#2563EB', todayTextColor: '#2563EB' }}
+                                    style={{ marginVertical: 8 }}
+                                />
+
+                                <TouchableOpacity
+                                    style={[styles.modalBtnApplyDark, getStage().step !== 3 && styles.modalBtnDisabled]}
+                                    onPress={getStage().step === 3 ? applyDateRange : undefined}
+                                    disabled={getStage().step !== 3}
+                                >
+                                    <Text style={[styles.modalBtnTextApplyDark, getStage().step !== 3 && styles.modalBtnTextDisabled]}>Apply filter</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </Modal>
+
+                    <Text style={styles.totalEarnings}>{totalEarningsStr}</Text>
 
                     {/* ── Earnings Chart ── */}
                     <View style={{ alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
                         <BarChart
                             data={{
                                 labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                                datasets: [{ data: [2.5, 4.2, 3.0, 8.0, 5.0, 12, 7.8] }]
+                                datasets: [{ data: dynamicChartData }]
                             }}
                             width={Dimensions.get("window").width - 85}
                             height={180}
@@ -128,7 +254,12 @@ export default function ProviderEarningsScreen() {
                 </View>
 
                 <View style={styles.historyList}>
-                    {PAYMENT_HISTORY.map((item, index) => (
+                    {filteredHistory.length === 0 && (
+                        <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                            <Text style={{ color: '#9CA3AF' }}>No payments found.</Text>
+                        </View>
+                    )}
+                    {filteredHistory.map((item, index) => (
                         <View key={item.id}>
                             <View style={styles.historyItem}>
                                 <View>
@@ -137,7 +268,7 @@ export default function ProviderEarningsScreen() {
                                 </View>
                                 <Text style={styles.historyAmount}>LKR {item.amount.toLocaleString()}</Text>
                             </View>
-                            {index < PAYMENT_HISTORY.length - 1 && <View style={styles.listDivider} />}
+                            {index < filteredHistory.length - 1 && <View style={styles.listDivider} />}
                         </View>
                     ))}
                 </View>
@@ -273,6 +404,27 @@ const styles = StyleSheet.create({
     historyDate: { fontSize: 13, color: '#9CA3AF', fontWeight: '500' },
     historyAmount: { fontSize: 15, fontWeight: '800', color: '#111827' },
     listDivider: { height: 1, backgroundColor: '#F3F4F6' },
+
+    // Modal & Calendar
+    // Modal & Calendar
+    modalOverlayDark: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
+    calendarContainerDark: { backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#F3F4F6' },
+    calendarTitleDark: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 16, textAlign: 'center' },
+    dateFieldsContainer: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    dateField: { flex: 1, backgroundColor: '#F9FAFB', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: '#E5E7EB' },
+    dateFieldActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
+    dateFieldLabel: { fontSize: 12, color: '#6B7280', marginBottom: 2 },
+    dateFieldValue: { fontSize: 15, color: '#111827', fontWeight: '700' },
+
+    hintBoxBlue: { backgroundColor: '#EFF6FF', paddingVertical: 8, borderRadius: 6, alignItems: 'center' },
+    hintTextBlue: { color: '#2563EB', fontSize: 13, fontWeight: '600' },
+    hintBoxGreen: { backgroundColor: '#ECFDF5', paddingVertical: 8, borderRadius: 6, alignItems: 'center' },
+    hintTextGreen: { color: '#059669', fontSize: 13, fontWeight: '600' },
+
+    modalBtnApplyDark: { backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 24, alignItems: 'center', marginTop: 12 },
+    modalBtnTextApplyDark: { color: '#fff', fontSize: 15, fontWeight: '600' },
+    modalBtnDisabled: { backgroundColor: '#F3F4F6' },
+    modalBtnTextDisabled: { color: '#9CA3AF' },
 
     // Bottom Nav
     bottomNav: {
