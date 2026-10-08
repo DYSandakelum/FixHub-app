@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { BarChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCurrency } from './settingsStore';
 
 type Payment = {
     id: string;
@@ -29,6 +31,7 @@ const PAYMENT_HISTORY: Payment[] = [
 ];
 
 export default function ProviderEarningsScreen() {
+    const { formatCurrency } = useCurrency();
     const router = useRouter();
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
@@ -38,6 +41,13 @@ export default function ProviderEarningsScreen() {
     const [tempStartDate, setTempStartDate] = useState<string | null>(null);
     const [tempEndDate, setTempEndDate] = useState<string | null>(null);
     const [markedDates, setMarkedDates] = useState<any>({});
+
+    const openCalendar = () => {
+        setTempStartDate(null);
+        setTempEndDate(null);
+        setMarkedDates({});
+        setShowCalendar(true);
+    };
 
     const handleDayPress = (day: any) => {
         if (!tempStartDate || (tempStartDate && tempEndDate)) {
@@ -124,18 +134,18 @@ export default function ProviderEarningsScreen() {
     });
 
     const totalEarningsVal = filteredHistory.reduce((acc, curr) => acc + curr.amount, 0);
-    const totalEarningsStr = totalEarningsVal > 0 ? `LKR ${totalEarningsVal.toLocaleString()}` : `LKR 42,500`;
+    const totalEarningsStr = totalEarningsVal > 0 ? formatCurrency(totalEarningsVal.toLocaleString()) : formatCurrency('42,500');
 
     return (
         <SafeAreaView style={styles.screen}>
             {/* ── Header ── */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backIcon}>‹</Text>
+                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Earnings</Text>
                 <TouchableOpacity style={styles.moreButton}>
-                    <Text style={styles.moreIcon}>•••</Text>
+                    <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
                 </TouchableOpacity>
             </View>
 
@@ -144,8 +154,8 @@ export default function ProviderEarningsScreen() {
                 <View style={styles.summaryCard}>
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryLabel}>Total Earnings</Text>
-                        <TouchableOpacity style={styles.filterButton} onPress={() => setShowCalendar(true)}>
-                            <Text style={styles.filterIcon}>📅</Text>
+                        <TouchableOpacity style={styles.filterButton} onPress={openCalendar}>
+                            <MaterialIcons name="calendar-today" size={14} color="#2563EB" />
                             <Text style={styles.summaryPeriod}>{formatDate(startDate)} - {formatDate(endDate)}</Text>
                         </TouchableOpacity>
                     </View>
@@ -234,14 +244,14 @@ export default function ProviderEarningsScreen() {
 
                     <View style={styles.statsRow}>
                         <Text style={styles.statText}>12 Jobs Completed</Text>
-                        <Text style={styles.statText}>Avg: LKR 3,542</Text>
+                        <Text style={styles.statText}>Avg: {formatCurrency('3,542')}</Text>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={styles.pendingRow}>
                         <Text style={styles.pendingLabel}>Pending Payout</Text>
-                        <Text style={styles.pendingAmount}>LKR 7,200</Text>
+                        <Text style={styles.pendingAmount}>{formatCurrency('7,200')}</Text>
                     </View>
                 </View>
 
@@ -266,7 +276,7 @@ export default function ProviderEarningsScreen() {
                                     <Text style={styles.historyCustomer}>{item.customerName}</Text>
                                     <Text style={styles.historyDate}>{item.date}</Text>
                                 </View>
-                                <Text style={styles.historyAmount}>LKR {item.amount.toLocaleString()}</Text>
+                                <Text style={styles.historyAmount}>{formatCurrency(item.amount.toLocaleString())}</Text>
                             </View>
                             {index < filteredHistory.length - 1 && <View style={styles.listDivider} />}
                         </View>
@@ -278,19 +288,19 @@ export default function ProviderEarningsScreen() {
             {/* ── Bottom Navigation Bar ── */}
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-dashboard')}>
-                    <Text style={styles.navIcon}>🏠</Text>
-                    <Text style={styles.navLabel}>Home</Text>
+                    <MaterialIcons name="dashboard" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
+                    <Text style={styles.navLabel}>Dashboard</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-schedule')}>
-                    <Text style={styles.navIcon}>📅</Text>
+                    <MaterialIcons name="calendar-today" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Schedule</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
-                    <Text style={styles.navIconActive}>💰</Text>
+                    <MaterialIcons name="account-balance-wallet" size={24} color="#2563EB" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabelActive}>Earnings</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-profile-setup')}>
-                    <Text style={styles.navIcon}>👤</Text>
+                    <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Profile</Text>
                 </TouchableOpacity>
             </View>

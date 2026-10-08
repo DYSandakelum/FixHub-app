@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
     ScrollView,
@@ -16,11 +17,11 @@ export default function JobCompletionScreen() {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backIcon}>‹</Text>
+                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Job Completion</Text>
                 <TouchableOpacity style={styles.moreButton}>
-                    <Text style={styles.moreIcon}>•••</Text>
+                    <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
                 </TouchableOpacity>
             </View>
 
@@ -73,25 +74,25 @@ export default function JobCompletionScreen() {
             {/* ── Bottom Navigation Bar ── */}
             <View style={styles.bottomNav}>
                 <View style={styles.navItem}>
-                    <Text style={styles.navIcon}>🏠</Text>
+                    <MaterialIcons name="dashboard" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Home</Text>
                 </View>
                 <View style={styles.navItem}>
-                    <Text style={styles.navIcon}>📅</Text>
+                    <MaterialIcons name="calendar-today" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Schedule</Text>
                 </View>
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() => router.push('/(provider)/provider-earnings')}
                 >
-                    <Text style={styles.navIcon}>💰</Text>
+                    <MaterialIcons name="account-balance-wallet" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Earnings</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() => router.push('/(provider)/provider-profile-setup')}
                 >
-                    <Text style={styles.navIcon}>👤</Text>
+                    <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Profile</Text>
                 </TouchableOpacity>
             </View>
