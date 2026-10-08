@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
+import i18n, { LangKey } from './i18n';
 
 type SettingsState = {
     country: string;
+    serviceCategory: string;
+    autoAccept: boolean;
+    newRequestAlerts: boolean;
+    appLanguage: LangKey;
 };
 
 type Listener = (state: SettingsState) => void;
@@ -9,6 +14,10 @@ type Listener = (state: SettingsState) => void;
 class SettingsStore {
     private state: SettingsState = {
         country: 'Sri Lanka', // Default to Sri Lanka as requested by user's test flow
+        serviceCategory: 'Plumbing',
+        autoAccept: false,
+        newRequestAlerts: true,
+        appLanguage: 'English'
     };
     private listeners: Set<Listener> = new Set();
 
@@ -23,6 +32,27 @@ class SettingsStore {
 
     setCountry(country: string) {
         this.state = { ...this.state, country };
+        this.notify();
+    }
+
+    setServiceCategory(serviceCategory: string) {
+        this.state = { ...this.state, serviceCategory };
+        this.notify();
+    }
+
+    setAutoAccept(autoAccept: boolean) {
+        this.state = { ...this.state, autoAccept };
+        this.notify();
+    }
+
+    setNewRequestAlerts(newRequestAlerts: boolean) {
+        this.state = { ...this.state, newRequestAlerts };
+        this.notify();
+    }
+
+    setAppLanguage(lang: LangKey) {
+        this.state = { ...this.state, appLanguage: lang };
+        i18n.changeLanguage(lang);
         this.notify();
     }
 
@@ -62,4 +92,14 @@ export function useCurrency() {
         currencySymbol,
         formatCurrency,
     };
+}
+
+
+export const getRoleNameString = (category: string) => {
+    switch (category) {
+        case 'Plumbing': return 'Plumber';
+        case 'Electrical': return 'Electrician';
+        case 'Cleaning': return 'Cleaner';
+        default: return category;
+    }
 }
