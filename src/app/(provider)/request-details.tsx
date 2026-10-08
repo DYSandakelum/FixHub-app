@@ -11,8 +11,10 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCurrency } from './settingsStore';
 
 export default function RequestDetailsScreen() {
+    const { formatCurrency } = useCurrency();
     const router = useRouter();
 
     return (
@@ -79,7 +81,7 @@ export default function RequestDetailsScreen() {
                         </View>
                         <View style={styles.infoTextContainer}>
                             <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
-                            <Text style={styles.payoutValue}>$85.00</Text>
+                            <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
                         </View>
                     </View>
                 </View>
@@ -124,11 +126,9 @@ export default function RequestDetailsScreen() {
 
             {/* ── Bottom Action Bar ── */}
             <View style={styles.bottomBar}>
-                <TouchableOpacity style={styles.declineButton} onPress={() => router.back()}>
-                    <Text style={styles.declineButtonText}>Decline</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.acceptButton} onPress={() => router.push('/(provider)/job-completion')}>
-                    <Text style={styles.acceptButtonText}>Accept Request</Text>
+                <TouchableOpacity style={styles.chatButton} onPress={() => router.push('/(provider)/chat')}>
+                    <MaterialIcons name="chat-bubble-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                    <Text style={styles.chatButtonText}>Message Customer</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -356,25 +356,20 @@ const styles = StyleSheet.create({
         borderTopColor: '#F0F0F0',
         gap: 12,
     },
-    declineButton: {
-        borderWidth: 1.5,
-        borderColor: '#2563EB',
-        borderRadius: 12,
-        paddingVertical: 14,
-        alignItems: 'center',
-    },
-    declineButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#2563EB',
-    },
-    acceptButton: {
+    chatButton: {
         backgroundColor: '#2563EB',
         borderRadius: 12,
         paddingVertical: 14,
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 4,
     },
-    acceptButtonText: {
+    chatButtonText: {
         fontSize: 16,
         fontWeight: '700',
         color: '#fff',
