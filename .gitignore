@@ -42,3 +42,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Local reference renders and validation artifacts
+.tooling/
