@@ -1,8 +1,3 @@
-/**
- * FixHub app theme — colors, fonts, and spacing used throughout the app.
- * Supports light and dark mode.
- */
-
 import { Platform } from 'react-native';
 
 export const Colors = {
@@ -12,8 +7,8 @@ export const Colors = {
     background: '#FFFFFF',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
-    primary: '#2563EB',   // main brand color — buttons, active states
-    accent: '#EF9F27',    // used for pricing highlights, alerts
+    primary: '#2563EB',
+    accent: '#EF9F27',
   },
   dark: {
     text: '#FFFFFF',
@@ -58,3 +53,10 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
+
+export const Typography = {
+  h1: { fontSize: 24, fontWeight: '700' as const },
+  h2: { fontSize: 18, fontWeight: '600' as const },
+  body: { fontSize: 14, fontWeight: '400' as const },
+  caption: { fontSize: 12, fontWeight: '400' as const, color: '#60646C' },
+};

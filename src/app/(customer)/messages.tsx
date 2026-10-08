@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -23,7 +24,8 @@ export default function MessagesScreen() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Messages</Text>
+            <Text style={styles.screenTitle}>Messages</Text>
+
             {loading ? (
                 <Text>Loading...</Text>
             ) : (
@@ -35,11 +37,23 @@ export default function MessagesScreen() {
                             style={styles.card}
                             onPress={() => router.push(`/(transaction)/chat?bookingId=${item.id}`)}
                         >
-                            <Text style={styles.providerName}>{item.providers?.users?.name ?? 'Unknown Provider'}</Text>
-                            <Text style={styles.detail}>{item.providers?.service_type} · {item.service_date}</Text>
+                            <View style={styles.iconCircle}>
+                                <Ionicons name="person" size={22} color="#fff" />
+                            </View>
+                            <View style={styles.cardInfo}>
+                                <Text style={styles.providerName}>{item.providers?.users?.name ?? 'Unknown Provider'}</Text>
+                                <Text style={styles.detail}>{item.providers?.service_type} · {item.service_date}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color="#999" />
                         </TouchableOpacity>
                     )}
-                    ListEmptyComponent={<Text style={styles.empty}>No conversations yet.</Text>}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <Ionicons name="chatbubble-outline" size={40} color="#ccc" />
+                            <Text style={styles.emptyText}>No conversations yet</Text>
+                            <Text style={styles.emptySubtext}>Messages from your bookings will appear here</Text>
+                        </View>
+                    }
                 />
             )}
         </View>
@@ -47,10 +61,34 @@ export default function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, paddingTop: 60 },
-    title: { fontSize: 20, fontWeight: '700', marginBottom: 16 },
-    card: { padding: 14, borderWidth: 1, borderColor: '#eee', borderRadius: 10, marginBottom: 10 },
+    container: { flex: 1, padding: 16, paddingTop: 60, backgroundColor: '#fff' },
+    screenTitle: { fontSize: 24, fontWeight: '700', marginBottom: 20, color: '#2563EB' },
+    card: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 14,
+        padding: 14,
+        marginBottom: 12,
+        gap: 12,
+        shadowColor: '#000',
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    iconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#2563EB',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cardInfo: { flex: 1 },
     providerName: { fontSize: 15, fontWeight: '600' },
     detail: { color: '#60646C', fontSize: 13, marginTop: 2 },
-    empty: { color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: 20 },
+    emptyState: { alignItems: 'center', marginTop: 60, gap: 6 },
+    emptyText: { fontSize: 15, fontWeight: '600', color: '#666' },
+    emptySubtext: { fontSize: 13, color: '#999', textAlign: 'center', paddingHorizontal: 30 },
 });

@@ -38,6 +38,10 @@ export default function CustomerTabsLayout() {
                     tabBarIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size} color={color} />,
                 }}
             />
+            <Tabs.Screen
+                name="edit-profile"
+                options={{ href: null }}
+            />
         </Tabs>
     );
 }
