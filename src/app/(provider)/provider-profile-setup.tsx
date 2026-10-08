@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    Alert,
     Image,
     KeyboardAvoidingView,
     Platform,
@@ -14,6 +15,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCurrency } from './settingsStore';
 
 // ─── Hero Section Component ───
 function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage: string | null, pickImage: () => void, onBack: () => void }) {
@@ -29,12 +31,14 @@ function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage:
             </View>
 
             <View style={styles.uploadContainer}>
-                <TouchableOpacity style={styles.uploadCircle} onPress={pickImage}>
-                    {profileImage ? (
-                        <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                    ) : (
-                        <MaterialIcons name="person" size={50} color="#2563EB" />
-                    )}
+                <TouchableOpacity onPress={pickImage} style={{ position: 'relative' }}>
+                    <View style={styles.uploadCircle}>
+                        {profileImage ? (
+                            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                        ) : (
+                            <MaterialIcons name="person" size={50} color="#2563EB" />
+                        )}
+                    </View>
                     <View style={styles.editIconBadge}>
                         <MaterialIcons name="edit" size={14} color="#111827" />
                     </View>
@@ -46,28 +50,85 @@ function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage:
 
 // ─── Main Screen ───
 export default function ProviderProfileSetupScreen() {
+    const { currencySymbol } = useCurrency();
     const router = useRouter();
     const [serviceType, setServiceType] = useState('Plumbing');
     const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [name, setName] = useState('Judith Glavour');
 
-    const pickImage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+    const [countryCode, setCountryCode] = useState('+94');
+    const [countryFlag, setCountryFlag] = useState('🇱🇰');
 
-        if (!result.canceled) {
-            setProfileImage(result.assets[0].uri);
-        }
+    const [profileCountryName, setProfileCountryName] = useState('Sri Lanka');
+    const [profileCountryFlag, setProfileCountryFlag] = useState('🇱🇰');
+
+    const [phone, setPhone] = useState('77 123 4567');
+    const [pickerType, setPickerType] = useState<'phone' | 'country' | null>(null);
+    const [countrySearch, setCountrySearch] = useState('');
+
+    const [email, setEmail] = useState('Judithglavour@gmail.com');
+
+    // Edit Modal State
+    const [editField, setEditField] = useState<{ key: string, label: string, value: string } | null>(null);
+    const [tempValue, setTempValue] = useState('');
+
+    const handleEditProfilePic = () => {
+        Alert.alert(
+            'Profile Picture',
+            'Choose an option',
+            [
+                {
+                    text: 'Take a photo',
+                    onPress: async () => {
+                        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                        if (status !== 'granted') {
+                            Alert.alert('Permission Denied', 'Sorry, we need camera permissions to make this work!');
+                            return;
+                        }
+                        let result = await ImagePicker.launchCameraAsync({
+                            mediaTypes: ['images'],
+                            allowsEditing: true,
+                            aspect: [1, 1],
+                            quality: 1,
+                        });
+                        if (!result.canceled) {
+                            setProfileImage(result.assets[0].uri);
+                        }
+                    }
+                },
+                {
+                    text: 'Choose photo',
+                    onPress: async () => {
+                        let result = await ImagePicker.launchImageLibraryAsync({
+                            mediaTypes: ['images'],
+                            allowsEditing: true,
+                            aspect: [1, 1],
+                            quality: 1,
+                        });
+                        if (!result.canceled) {
+                            setProfileImage(result.assets[0].uri);
+                        }
+                    }
+                },
+                {
+                    text: 'Delete photo',
+                    style: 'destructive',
+                    onPress: () => setProfileImage(null)
+                },
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+            ],
+            { cancelable: true }
+        );
     };
 
     return (
         <View style={styles.screen}>
             <ProfileHeroSection
                 profileImage={profileImage}
-                pickImage={pickImage}
+                pickImage={handleEditProfilePic}
                 onBack={() => router.back()}
             />
 
@@ -77,42 +138,68 @@ export default function ProviderProfileSetupScreen() {
             >
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                    {/* ── Personal Info Label ── */}
-                    <Text style={styles.sectionSimpleTitle}>Personal Info</Text>
+                    <Text style={[styles.sectionSimpleTitle, { marginTop: 16 }]}>Personal Info</Text>
+                    {/* ── Personal Info Card ── */}
+                    <View style={styles.proProfileCard}>
 
-                    <View style={styles.infoCard}>
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconBox}>
-                                <MaterialIcons name="person-outline" size={22} color="#4B5563" />
+                        <TouchableOpacity
+                            style={styles.personalInfoField}
+                            onPress={() => { setEditField({ key: 'name', label: 'Your name', value: name }); setTempValue(name); }}
+                        >
+                            <View style={styles.fieldIconCircle}>
+                                <MaterialIcons name="person-outline" size={20} color="#9CA3AF" />
                             </View>
-                            <View style={styles.infoTextContainer}>
-                                <Text style={styles.infoLabelText}>Your name</Text>
-                                <Text style={styles.infoValueText}>Judith Glavour</Text>
+                            <View style={styles.fieldTextCol}>
+                                <Text style={styles.fieldLabelUpper}>YOUR NAME</Text>
+                                <Text style={styles.fieldValueText}>{name}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
-                        </View>
+                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                        </TouchableOpacity>
 
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconBox}>
-                                <MaterialIcons name="phone" size={22} color="#4B5563" />
+                        <TouchableOpacity
+                            style={styles.personalInfoField}
+                            onPress={() => { setEditField({ key: 'phone', label: 'Phone Number', value: phone }); setTempValue(phone); }}
+                        >
+                            <View style={styles.fieldIconCircle}>
+                                <MaterialIcons name="phone" size={20} color="#9CA3AF" />
                             </View>
-                            <View style={styles.infoTextContainer}>
-                                <Text style={styles.infoLabelText}>Phone Number</Text>
-                                <Text style={styles.infoValueText}>+234 458 2548</Text>
+                            <View style={styles.fieldTextCol}>
+                                <Text style={styles.fieldLabelUpper}>PHONE NUMBER</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={[styles.fieldValueText, { color: '#4B5563', marginRight: 6 }]}>{countryFlag} {countryCode}</Text>
+                                    <Text style={styles.fieldValueText}>{phone}</Text>
+                                </View>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
-                        </View>
+                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                        </TouchableOpacity>
 
-                        <View style={styles.infoRow}>
-                            <View style={styles.infoIconBox}>
-                                <MaterialIcons name="mail-outline" size={22} color="#4B5563" />
+                        <TouchableOpacity
+                            style={styles.personalInfoField}
+                            onPress={() => { setEditField({ key: 'email', label: 'Email Address', value: email }); setTempValue(email); }}
+                        >
+                            <View style={styles.fieldIconCircle}>
+                                <MaterialIcons name="mail-outline" size={20} color="#9CA3AF" />
                             </View>
-                            <View style={styles.infoTextContainer}>
-                                <Text style={styles.infoLabelText}>Email Address</Text>
-                                <Text style={styles.infoValueText}>Judithglavour@gmail.com</Text>
+                            <View style={styles.fieldTextCol}>
+                                <Text style={styles.fieldLabelUpper}>EMAIL ADDRESS</Text>
+                                <Text style={styles.fieldValueText}>{email}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
-                        </View>
+                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.personalInfoField}
+                            onPress={() => setPickerType('country')}
+                        >
+                            <View style={styles.fieldIconCircle}>
+                                <Text style={{ fontSize: 16 }}>{profileCountryFlag}</Text>
+                            </View>
+                            <View style={styles.fieldTextCol}>
+                                <Text style={styles.fieldLabelUpper}>COUNTRY</Text>
+                                <Text style={styles.fieldValueText}>{profileCountryName}</Text>
+                            </View>
+                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                        </TouchableOpacity>
                     </View>
 
                     {/* ── Form Inputs (Professional Details) ── */}
@@ -125,7 +212,7 @@ export default function ProviderProfileSetupScreen() {
                         <View style={styles.fieldSection}>
                             <Text style={styles.fieldLabel}>Service Category / Types</Text>
                             <View style={styles.pillRow}>
-                                {['Plumbing', 'Electrical', 'Cleaning', 'Carpentry'].map((type) => {
+                                {['Plumbing', 'Electrical', 'Cleaning'].map((type) => {
                                     const isActive = serviceType === type;
                                     return (
                                         <TouchableOpacity
@@ -164,7 +251,7 @@ export default function ProviderProfileSetupScreen() {
                                         <Text style={styles.inputBoxTitle}>HOURLY RATE</Text>
                                     </View>
                                     <View style={styles.inputRow}>
-                                        <Text style={styles.inputPrefix}>LKR</Text>
+                                        <Text style={styles.inputPrefix}>{currencySymbol.trim()}</Text>
                                         <TextInput style={styles.inputMainText} keyboardType="numeric" placeholder="1,500" placeholderTextColor="#111827" />
                                     </View>
                                 </View>
@@ -202,6 +289,7 @@ export default function ProviderProfileSetupScreen() {
                         </View>
                     </View>
 
+
                     {/* ── Save Button ── */}
                     <TouchableOpacity style={styles.saveBtn}>
                         <MaterialIcons name="save" size={20} color="#fff" />
@@ -210,6 +298,116 @@ export default function ProviderProfileSetupScreen() {
 
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* ── Country Picker Modal ── */}
+            {pickerType && (
+                <View style={[styles.modalOverlay, { zIndex: 1100 }]}>
+                    <View style={styles.pickerContainer}>
+                        <Text style={styles.pickerTitle}>Select Country</Text>
+                        <TextInput
+                            style={styles.countrySearchInput}
+                            placeholder="Search country..."
+                            placeholderTextColor="#9CA3AF"
+                            value={countrySearch}
+                            onChangeText={setCountrySearch}
+                        />
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {[
+                                { name: 'Sri Lanka', code: '+94', flag: '🇱🇰' },
+                                { name: 'Nigeria', code: '+234', flag: '🇳🇬' },
+                                { name: 'United States', code: '+1', flag: '🇺🇸' },
+                                { name: 'United Kingdom', code: '+44', flag: '🇬🇧' },
+                                { name: 'India', code: '+91', flag: '🇮🇳' },
+                                { name: 'Australia', code: '+61', flag: '🇦🇺' },
+                            ].filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase())).map((item) => (
+                                <TouchableOpacity
+                                    key={item.code}
+                                    style={styles.pickerItem}
+                                    onPress={() => {
+                                        if (pickerType === 'phone') {
+                                            setCountryCode(item.code);
+                                            setCountryFlag(item.flag);
+                                        } else {
+                                            setProfileCountryName(item.name);
+                                            setProfileCountryFlag(item.flag);
+                                        }
+                                        setPickerType(null);
+                                        setCountrySearch('');
+                                    }}
+                                >
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={styles.pickerFlag}>{item.flag}</Text>
+                                        <Text style={styles.pickerName}>{item.name}</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                        <TouchableOpacity style={styles.pickerCloseBtn} onPress={() => { setPickerType(null); setCountrySearch(''); }}>
+                            <Text style={styles.pickerCloseText}>Cancel</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+            {/* ── Field Edit Modal ── */}
+            {editField && (
+                <View style={styles.modalOverlay}>
+                    <View style={styles.editModalContainer}>
+                        <View style={styles.editModalHeader}>
+                            <Text style={styles.editModalTitle}>Edit {editField.label}</Text>
+                            <MaterialIcons name="edit" size={18} color="#2563EB" />
+                        </View>
+                        <Text style={styles.editModalSubtitle}>{editField.value}</Text>
+
+                        <View style={styles.editModalInputWrapper}>
+                            <Text style={styles.editModalInputLabel}>{editField.label}</Text>
+                            {editField.key === 'phone' ? (
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <TouchableOpacity
+                                        onPress={() => setPickerType('phone')}
+                                        style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10, paddingRight: 10, borderRightWidth: 1, borderRightColor: '#E5E7EB' }}
+                                    >
+                                        <Text style={[styles.editModalTextInput, { color: '#4B5563', marginRight: 4 }]}>{countryFlag} {countryCode}</Text>
+                                        <MaterialIcons name="arrow-drop-down" size={20} color="#4B5563" />
+                                    </TouchableOpacity>
+                                    <TextInput
+                                        style={[styles.editModalTextInput, { flex: 1 }]}
+                                        value={tempValue}
+                                        onChangeText={setTempValue}
+                                        keyboardType="phone-pad"
+                                        autoFocus
+                                    />
+                                </View>
+                            ) : (
+                                <TextInput
+                                    style={styles.editModalTextInput}
+                                    value={tempValue}
+                                    onChangeText={setTempValue}
+                                    keyboardType={editField.key === 'email' ? 'email-address' : 'default'}
+                                    autoCapitalize={editField.key === 'email' ? 'none' : 'words'}
+                                    autoFocus
+                                />
+                            )}
+                        </View>
+
+                        <View style={styles.editModalActionRow}>
+                            <TouchableOpacity onPress={() => setEditField(null)}>
+                                <Text style={styles.editModalCancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.editModalSaveBtn}
+                                onPress={() => {
+                                    if (editField.key === 'name') setName(tempValue);
+                                    if (editField.key === 'phone') setPhone(tempValue);
+                                    if (editField.key === 'email') setEmail(tempValue);
+                                    setEditField(null);
+                                }}
+                            >
+                                <Text style={styles.editModalSaveText}>Save</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -228,7 +426,7 @@ const styles = StyleSheet.create({
 
     // Hero Section Styles
     blueHeaderSection: {
-        backgroundColor: '#065FCE',
+        backgroundColor: '#2563EB',
         borderBottomLeftRadius: 40,
         borderBottomRightRadius: 40,
         paddingBottom: 45,
@@ -295,47 +493,102 @@ const styles = StyleSheet.create({
         marginLeft: 4,
     },
 
-    // Person Info Card
-    infoCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        paddingVertical: 4,
-        paddingHorizontal: 12,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
-        elevation: 1,
+    basicBadgeText: {
+        color: '#9CA3AF',
+        fontSize: 14,
+        fontWeight: '600',
     },
-    infoRow: {
+    personalInfoField: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
+        backgroundColor: '#F8FAFC',
+        borderRadius: 16,
+        padding: 12,
+        marginBottom: 12,
     },
-    infoIconBox: {
+    fieldIconCircle: {
         width: 44,
         height: 44,
         borderRadius: 22,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
         marginRight: 16,
-        backgroundColor: '#FAFAFA'
     },
-    infoTextContainer: {
+    fieldTextCol: {
         flex: 1,
+        justifyContent: 'center',
     },
-    infoLabelText: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginBottom: 2,
+    fieldLabelUpper: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#9CA3AF',
+        marginBottom: 4,
+        letterSpacing: 0.5,
     },
-    infoValueText: {
-        fontSize: 14,
+    fieldValueText: {
+        fontSize: 15,
         fontWeight: '700',
         color: '#111827',
+        padding: 0,
+        margin: 0,
+    },
+    modalOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+    pickerContainer: {
+        backgroundColor: '#fff',
+        width: '80%',
+        maxHeight: '60%',
+        borderRadius: 16,
+        padding: 20,
+    },
+    pickerTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginBottom: 16,
+        color: '#111827',
+        textAlign: 'center',
+    },
+    pickerItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    pickerFlag: {
+        fontSize: 22,
+        marginRight: 12,
+    },
+    pickerName: {
+        flex: 1,
+        fontSize: 15,
+        color: '#374151',
+    },
+    pickerCode: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    pickerCloseBtn: {
+        marginTop: 16,
+        alignItems: 'center',
+        paddingVertical: 14,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+    },
+    pickerCloseText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#4B5563',
     },
 
     // Professional Card
@@ -481,5 +734,87 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         marginLeft: 8,
+    },
+
+    // Edit Modal Styles
+    editModalContainer: {
+        backgroundColor: '#fff',
+        width: '90%',
+        borderRadius: 24,
+        padding: 24,
+    },
+    editModalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    editModalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#111827',
+    },
+    editModalSubtitle: {
+        fontSize: 15,
+        color: '#6B7280',
+        marginBottom: 24,
+    },
+    editModalInputWrapper: {
+        borderWidth: 1.5,
+        borderColor: '#2563EB',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 14,
+        position: 'relative',
+        marginBottom: 28,
+    },
+    editModalInputLabel: {
+        position: 'absolute',
+        top: -10,
+        left: 10,
+        backgroundColor: '#fff',
+        paddingHorizontal: 6,
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#2563EB',
+    },
+    editModalTextInput: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#111827',
+        padding: 0,
+        margin: 0,
+    },
+    editModalActionRow: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        gap: 20,
+    },
+    editModalCancelText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#2563EB',
+    },
+    editModalSaveBtn: {
+        backgroundColor: '#2563EB',
+        paddingHorizontal: 28,
+        paddingVertical: 12,
+        borderRadius: 24,
+    },
+    editModalSaveText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#fff',
+    },
+    countrySearchInput: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 15,
+        color: '#111827',
+        marginBottom: 12,
+        marginHorizontal: 16,
     }
 });

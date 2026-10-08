@@ -13,6 +13,7 @@ import {
 import { Calendar } from 'react-native-calendars';
 import { BarChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCurrency } from './settingsStore';
 
 type Payment = {
     id: string;
@@ -30,6 +31,7 @@ const PAYMENT_HISTORY: Payment[] = [
 ];
 
 export default function ProviderEarningsScreen() {
+    const { formatCurrency } = useCurrency();
     const router = useRouter();
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
     const [endDate, setEndDate] = useState(new Date());
@@ -132,7 +134,7 @@ export default function ProviderEarningsScreen() {
     });
 
     const totalEarningsVal = filteredHistory.reduce((acc, curr) => acc + curr.amount, 0);
-    const totalEarningsStr = totalEarningsVal > 0 ? `LKR ${totalEarningsVal.toLocaleString()}` : `LKR 42,500`;
+    const totalEarningsStr = totalEarningsVal > 0 ? formatCurrency(totalEarningsVal.toLocaleString()) : formatCurrency('42,500');
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -242,14 +244,14 @@ export default function ProviderEarningsScreen() {
 
                     <View style={styles.statsRow}>
                         <Text style={styles.statText}>12 Jobs Completed</Text>
-                        <Text style={styles.statText}>Avg: LKR 3,542</Text>
+                        <Text style={styles.statText}>Avg: {formatCurrency('3,542')}</Text>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={styles.pendingRow}>
                         <Text style={styles.pendingLabel}>Pending Payout</Text>
-                        <Text style={styles.pendingAmount}>LKR 7,200</Text>
+                        <Text style={styles.pendingAmount}>{formatCurrency('7,200')}</Text>
                     </View>
                 </View>
 
@@ -274,7 +276,7 @@ export default function ProviderEarningsScreen() {
                                     <Text style={styles.historyCustomer}>{item.customerName}</Text>
                                     <Text style={styles.historyDate}>{item.date}</Text>
                                 </View>
-                                <Text style={styles.historyAmount}>LKR {item.amount.toLocaleString()}</Text>
+                                <Text style={styles.historyAmount}>{formatCurrency(item.amount.toLocaleString())}</Text>
                             </View>
                             {index < filteredHistory.length - 1 && <View style={styles.listDivider} />}
                         </View>

@@ -2,32 +2,43 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    Platform,
     ScrollView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { useJobs } from './jobsStore';
 
 export default function ProviderScheduleScreen() {
     const router = useRouter();
 
-    // Sample state for schedule toggles
-    const [schedule, setSchedule] = useState({
-        mon: true,
-        tue: true,
-        wed: true,
-        thu: true,
-        fri: true,
-        sat: true,
-        sun: false,
+    // Convert current Date to string format used by Calendar (YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0];
+    const [selectedDate, setSelectedDate] = useState(today);
+
+    const allJobs = useJobs();
+    const dailyJobs = allJobs.filter(job => job.date === selectedDate);
+
+    // Build marked dates for Calendar
+    const marked: any = {};
+    allJobs.forEach((job) => {
+        // Red dot indicates an appointment
+        marked[job.date] = { marked: true, dotColor: '#EF4444' };
     });
 
-    const toggleDay = (day: keyof typeof schedule) => {
-        setSchedule(prev => ({ ...prev, [day]: !prev[day] }));
-    };
+    // Highlight the explicitly selected date
+    if (marked[selectedDate]) {
+        marked[selectedDate].selected = true;
+        marked[selectedDate].selectedColor = '#2563EB';
+    } else {
+        marked[selectedDate] = { selected: true, selectedColor: '#2563EB' };
+    }
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -36,7 +47,7 @@ export default function ProviderScheduleScreen() {
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                     <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Availability Settings</Text>
+                <Text style={styles.headerTitle}>My Schedule</Text>
                 <View style={styles.onlineToggleContainer}>
                     <Text style={styles.onlineText}>Online</Text>
                     <Switch
@@ -49,147 +60,68 @@ export default function ProviderScheduleScreen() {
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                {/* ── Weekly Working Hours ── */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Weekly Working Hours</Text>
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Mon</Text>
-                        <Text style={[styles.timeText, !schedule.mon && styles.timeTextOff]}>
-                            {schedule.mon ? '8:00 AM – 5:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.mon}
-                            onValueChange={() => toggleDay('mon')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Tue</Text>
-                        <Text style={[styles.timeText, !schedule.tue && styles.timeTextOff]}>
-                            {schedule.tue ? '8:00 AM – 5:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.tue}
-                            onValueChange={() => toggleDay('tue')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Wed</Text>
-                        <Text style={[styles.timeText, !schedule.wed && styles.timeTextOff]}>
-                            {schedule.wed ? '8:00 AM – 5:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.wed}
-                            onValueChange={() => toggleDay('wed')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Thu</Text>
-                        <Text style={[styles.timeText, !schedule.thu && styles.timeTextOff]}>
-                            {schedule.thu ? '8:00 AM – 5:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.thu}
-                            onValueChange={() => toggleDay('thu')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Fri</Text>
-                        <Text style={[styles.timeText, !schedule.fri && styles.timeTextOff]}>
-                            {schedule.fri ? '8:00 AM – 3:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.fri}
-                            onValueChange={() => toggleDay('fri')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Sat</Text>
-                        <Text style={[styles.timeText, !schedule.sat && styles.timeTextOff]}>
-                            {schedule.sat ? '9:00 AM – 1:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.sat}
-                            onValueChange={() => toggleDay('sat')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
-                    <View style={styles.divider} />
-
-                    <View style={styles.dayRow}>
-                        <Text style={styles.dayText}>Sun</Text>
-                        <Text style={[styles.timeText, !schedule.sun && styles.timeTextOff]}>
-                            {schedule.sun ? '8:00 AM – 5:00 PM' : 'Day off'}
-                        </Text>
-                        <Switch
-                            value={schedule.sun}
-                            onValueChange={() => toggleDay('sun')}
-                            trackColor={{ false: '#E5E7EB', true: '#2563EB' }}
-                            thumbColor={'#fff'}
-                        />
-                    </View>
+                {/* ── Calendar React Native ── */}
+                <View style={styles.calendarContainer}>
+                    <Calendar
+                        onDayPress={(day: any) => setSelectedDate(day.dateString)}
+                        markedDates={marked}
+                        theme={{
+                            todayTextColor: '#2563EB',
+                            arrowColor: '#2563EB',
+                            selectedDayBackgroundColor: '#2563EB',
+                            textDayFontWeight: '500',
+                            textMonthFontWeight: 'bold',
+                            textDayHeaderFontWeight: '600',
+                        }}
+                        style={styles.calendar}
+                    />
                 </View>
 
-                {/* ── Travel Buffer ── */}
-                <View style={styles.actionCard}>
-                    <View style={styles.actionCardContent}>
-                        <Text style={styles.actionCardTitle}>Travel buffer</Text>
-                        <Text style={styles.actionCardSubtitle}>Gap between jobs</Text>
+                {/* ── Assigned Jobs for the Day ── */}
+                <View style={styles.jobsSection}>
+                    <View style={styles.jobsSectionHeader}>
+                        <Text style={styles.jobsSectionTitle}>Appointments</Text>
+                        <Text style={styles.jobsCount}>{dailyJobs.length} Jobs</Text>
                     </View>
-                    <TouchableOpacity style={styles.badgeButton}>
-                        <Text style={styles.badgeText}>30 min</Text>
-                    </TouchableOpacity>
+
+                    {dailyJobs.length === 0 ? (
+                        <View style={styles.noJobsContainer}>
+                            <MaterialIcons name="event-busy" size={48} color="#D1D5DB" />
+                            <Text style={styles.noJobsText}>No appointments assigned for this day.</Text>
+                        </View>
+                    ) : (
+                        dailyJobs.map(job => (
+                            <View key={job.id} style={styles.jobCard}>
+                                <View style={styles.jobHeaderRow}>
+                                    <View style={styles.avatar}>
+                                        <Text style={styles.avatarText}>{job.initial}</Text>
+                                    </View>
+                                    <View style={{ flex: 1, paddingLeft: 12 }}>
+                                        <Text style={styles.jobName}>{job.customerName}</Text>
+                                        <Text style={styles.jobService}>{job.serviceType}</Text>
+                                    </View>
+                                    {job.isNext && (
+                                        <View style={styles.nextBadge}>
+                                            <Text style={styles.nextBadgeText}>Next</Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                <View style={styles.jobFooter}>
+                                    <View style={styles.jobIconRow}>
+                                        <MaterialIcons name="schedule" size={16} color="#6B7280" />
+                                        <Text style={styles.jobFooterText}>{job.time}</Text>
+                                    </View>
+                                    <View style={styles.jobIconRow}>
+                                        <MaterialIcons name="location-pin" size={16} color="#6B7280" />
+                                        <Text style={styles.jobFooterText}>{job.location}</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))
+                    )}
                 </View>
-
-                {/* ── Service Area ── */}
-                <View style={styles.actionCard}>
-                    <View style={styles.actionCardContent}>
-                        <Text style={styles.actionCardTitle}>Service area</Text>
-                        <Text style={styles.actionCardSubtitle}>Within 15 km of Nugegoda</Text>
-                    </View>
-                    <TouchableOpacity style={styles.badgeButton}>
-                        <Text style={styles.badgeText}>Edit</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* ── Block a Date ── */}
-                <View style={styles.actionCard}>
-                    <View style={styles.actionCardContent}>
-                        <Text style={styles.actionCardTitle}>Block a date</Text>
-                        <Text style={styles.actionCardSubtitle}>Holidays, leave, training</Text>
-                    </View>
-                    <TouchableOpacity style={styles.badgeButton}>
-                        <Text style={styles.badgeText}>+ Add</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* ── Save Button ── */}
-                <TouchableOpacity style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Save changes</Text>
-                </TouchableOpacity>
-
-                <View style={{ height: 30 }} />
+                <View style={{ height: 20 }} />
             </ScrollView>
 
             {/* ── Bottom Navigation Bar ── */}
@@ -218,7 +150,7 @@ export default function ProviderScheduleScreen() {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#F9FAFB', // Light clean gray
     },
     // Header
     header: {
@@ -240,7 +172,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    backIcon: { fontSize: 24, color: '#2563EB', lineHeight: 28 },
     headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
     onlineToggleContainer: {
         flexDirection: 'row',
@@ -250,79 +181,135 @@ const styles = StyleSheet.create({
     onlineText: { fontSize: 13, fontWeight: '600', color: '#10B981' },
 
     scrollContent: {
-        padding: 20,
+        paddingTop: 16,
+        paddingBottom: 24,
     },
 
-    // Weekly Working Hours Card
-    card: {
+    // Calendar
+    calendarContainer: {
+        backgroundColor: '#fff',
+        marginHorizontal: 16,
+        borderRadius: 20,
+        paddingBottom: 10,
+        marginBottom: 20,
+        // shadows
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+        overflow: 'hidden',
+    },
+    calendar: {
+        borderRadius: 20,
+    },
+
+    // Assigned Jobs List
+    jobsSection: {
+        paddingHorizontal: 20,
+    },
+    jobsSectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    jobsSectionTitle: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#111827',
+    },
+    jobsCount: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2563EB',
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+
+    noJobsContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 40,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 20,
         borderWidth: 1,
         borderColor: '#F3F4F6',
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-        elevation: 1,
     },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 16 },
-    dayRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 10,
+    noJobsText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: '#9CA3AF',
+        fontWeight: '500',
     },
-    dayText: { fontSize: 15, fontWeight: '700', color: '#111827', width: 45 },
-    timeText: { fontSize: 15, fontWeight: '500', color: '#374151', flex: 1, paddingLeft: 10 },
-    timeTextOff: { color: '#9CA3AF' },
-    divider: { height: 1, backgroundColor: '#F3F4F6' },
 
-    // Action Cards
-    actionCard: {
+    jobCard: {
         backgroundColor: '#fff',
         borderRadius: 16,
         padding: 16,
+        marginBottom: 12,
         borderWidth: 1,
         borderColor: '#F3F4F6',
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-        elevation: 1,
+    },
+    jobHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        marginBottom: 12,
     },
-    actionCardContent: {
-        flex: 1,
-    },
-    actionCardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
-    actionCardSubtitle: { fontSize: 13, fontWeight: '500', color: '#6B7280' },
-    badgeButton: {
-        backgroundColor: '#EFF6FF',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-    badgeText: { fontSize: 13, fontWeight: '700', color: '#2563EB' },
-
-    // Save Button
-    saveButton: {
-        backgroundColor: '#2563EB',
-        borderRadius: 12,
-        paddingVertical: 16,
+    avatar: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#F3F4F6',
+        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 8,
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
     },
-    saveButtonText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+    avatarText: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#111827',
+    },
+    jobName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#111827',
+        marginBottom: 2,
+    },
+    jobService: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#6B7280',
+    },
+    nextBadge: {
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    nextBadgeText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#2563EB',
+    },
+    jobFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
+        paddingTop: 12,
+    },
+    jobIconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    jobFooterText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#4B5563',
+    },
 
     // Bottom Nav
     bottomNav: {
@@ -332,11 +319,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderTopWidth: 1,
         borderTopColor: '#F0F0F0',
+        paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     },
-    navItem: { alignItems: 'center' },
-    navIcon: { fontSize: 24, opacity: 0.5, marginBottom: 4 },
-    navLabel: { fontSize: 12, color: '#9CA3AF', fontWeight: '500' },
-    navItemActive: { alignItems: 'center' },
-    navIconActive: { fontSize: 24, opacity: 1, marginBottom: 4 },
-    navLabelActive: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+    navItem: { alignItems: 'center', flex: 1, gap: 4 },
+    navLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600' },
+    navItemActive: { alignItems: 'center', flex: 1, gap: 4 },
+    navLabelActive: { fontSize: 11, color: '#2563EB', fontWeight: '600' },
 });
