@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
     Image,
@@ -19,11 +20,11 @@ export default function RequestDetailsScreen() {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backIcon}>‹</Text>
+                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Request Details</Text>
                 <TouchableOpacity style={styles.moreButton}>
-                    <Text style={styles.moreIcon}>•••</Text>
+                    <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
                 </TouchableOpacity>
             </View>
 
@@ -48,7 +49,7 @@ export default function RequestDetailsScreen() {
                     {/* Date & Time */}
                     <View style={styles.infoRow}>
                         <View style={styles.iconBox}>
-                            <Text style={styles.icon}>📅</Text>
+                            <MaterialIcons name="calendar-today" size={16} color="#6B7280" />
                         </View>
                         <View style={styles.infoTextContainer}>
                             <Text style={styles.infoLabel}>DATE & TIME</Text>
