@@ -1,28 +1,26 @@
 /**
- * FixHub app theme — colors, fonts, and spacing used throughout the app.
- * Supports light and dark mode.
+ * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
+ * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
+
+import '@/global.css';
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#1A1A1A',
-    textSecondary: '#60646C',
+    text: '#000000',
     background: '#FFFFFF',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
-    primary: '#1D9E75',   // main brand color — buttons, active states
-    accent: '#EF9F27',    // used for pricing highlights, alerts
+    textSecondary: '#60646C',
   },
   dark: {
-    text: '#FFFFFF',
+    text: '#000000',
+    background: '#FFFFFF',
+    backgroundElement: '#F0F0F3',
+    backgroundSelected: '#E0E1E6',
     textSecondary: '#B0B4BA',
-    background: '#121212',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    primary: '#2FBF8F',
-    accent: '#F5B24D',
   },
 } as const;
 
@@ -30,9 +28,13 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
+    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
+    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
+    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
+    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -58,3 +60,6 @@ export const Spacing = {
   five: 32,
   six: 64,
 } as const;
+
+export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const MaxContentWidth = 800;
