@@ -53,6 +53,11 @@ export function Header({
   onMore?: () => void;
   fallback?: Href;
 }) {
+  const { bookingId } = useLocalSearchParams<{ bookingId?: string }>();
+  const goBack = () => {
+    if (router.canGoBack()) { router.back(); return; }
+    router.replace(typeof fallback === 'string' && bookingId ? { pathname: fallback, params: { bookingId } } as Href : fallback);
+  };
   return (
     <View style={[s.header, subtitle ? s.chatHeader : undefined]}>
       <View style={s.headerRow}>
@@ -60,9 +65,7 @@ export function Header({
           accessibilityRole="button"
           accessibilityLabel="Go back"
           style={s.iconHit}
-          onPress={() =>
-            router.canGoBack() ? router.back() : router.replace(fallback)
-          }
+          onPress={goBack}
         >
           <View style={s.back}>
             <Icon name="arrow-back" size={19} />

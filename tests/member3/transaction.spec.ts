@@ -112,12 +112,14 @@ test("provider demo progression reaches review and screenshots render without ov
     await page
       .getByRole("button", { name: "Advance Demo Status", exact: true })
       .click();
+    await expect(page.getByText('Booking options', { exact: true })).not.toBeVisible();
   }
   await expect(
     page.getByRole("button", { name: "Rate & Review", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "More options", exact: true }).click();
   await page.getByRole("button", { name: "Reset Demo", exact: true }).click();
+  await expect(page.getByText('Booking options', { exact: true })).not.toBeVisible();
   for (const route of ["payment", "booking-tracking", "chat", "rate-review"]) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
