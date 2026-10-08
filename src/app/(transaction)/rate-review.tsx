@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { router } from 'expo-router';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Actions, Avatar, BookingUnavailable, Button, Content, ErrorText, Header, Icon, Screen } from '@/components/transaction/ui';
@@ -6,12 +6,20 @@ import { feedbackTags, transactionColors as c } from '@/constants/transaction';
 import { useTransaction } from '@/hooks/use-transaction';
 
 export default function RateReviewScreen() {
-  const tx = useTransaction(); const [rating, setRating] = useState(4); const [comment, setComment] = useState(''); const [tags, setTags] = useState<string[]>([]); const [options, setOptions] = useState(false); const [saved, setSaved] = useState(false); const [validation, setValidation] = useState('');
-  useEffect(() => { if (tx.review) { setRating(tx.review.rating); setComment(tx.review.comment); setTags(tx.review.tags); } else { setRating(4); setComment(''); setTags([]); } }, [tx.review]);
+  const tx = useTransaction();
+  const [draft, setDraft] = useState<{ rating: number; comment: string; tags: string[] } | null>(null);
+  const rating = draft?.rating ?? tx.review?.rating ?? 4;
+  const comment = draft?.comment ?? tx.review?.comment ?? '';
+  const tags = draft?.tags ?? tx.review?.tags ?? [];
+  const edit = (patch: Partial<NonNullable<typeof draft>>) => setDraft({ rating, comment, tags, ...patch });
+  const setRating = (value: number) => edit({ rating: value });
+  const setComment = (value: string) => edit({ comment: value });
+  const setTags = (update: (previous: string[]) => string[]) => edit({ tags: update(tags) });
+  const [options, setOptions] = useState(false); const [saved, setSaved] = useState(false); const [validation, setValidation] = useState('');
   async function submit() {
     setValidation('');
     if (!tx.isDemo && tx.booking.status !== 'Completed') { setValidation('You can leave feedback when your provider completes the service.'); return; }
-    if (await tx.saveReview({ rating, comment: comment.trim(), tags })) setSaved(true);
+    if (await tx.saveReview({ rating, comment: comment.trim(), tags })) { setDraft(null); setSaved(true); }
   }
   if (!tx.isDemo && !tx.ready) return <BookingUnavailable loading={tx.loading} error={tx.error} onRetry={() => { void tx.refresh(); }} />;
   return <Screen><Header title="Rate & Review" onMore={() => setOptions(true)} /><Content><View style={s.profile}><Avatar large /><Text style={s.name}>{tx.isDemo ? 'Marcus Vance' : tx.booking.providerName}</Text><Text style={s.speciality}>Expert Plumbing Technician</Text></View><Text style={s.question}>How would you rate his service?</Text><View style={s.stars}>{[1, 2, 3, 4, 5].map(star => <Pressable key={star} accessibilityRole="radio" accessibilityLabel={`${star} star${star > 1 ? 's' : ''}`} accessibilityState={{ checked: rating === star }} onPress={() => setRating(star)} style={s.starHit}><View style={[s.star, star <= rating && s.starSelected]}><Icon name="star-outline" size={23} color={star <= rating ? c.white : '#A8B2BF'} /></View></Pressable>)}</View>
@@ -27,7 +35,7 @@ export default function RateReviewScreen() {
         <Text style={s.menuTitle}>Review options</Text>
         {tx.review ? <>
           <Text style={s.help}>Deleting your review removes your rating and written feedback.</Text>
-          <Button title="Delete Review" busy={tx.busy} onPress={() => { void tx.deleteReview().then(ok => { if (ok) setOptions(false); }); }} />
+          <Button title="Delete Review" busy={tx.busy} onPress={() => { void tx.deleteReview().then(ok => { if (ok) { setDraft(null); setOptions(false); } }); }} />
           <ErrorText>{tx.error}</ErrorText>
         </> : <Text style={s.help}>Submit feedback first. You can return here to edit or delete it.</Text>}
         <Button title="Close" secondary onPress={() => setOptions(false)} />
