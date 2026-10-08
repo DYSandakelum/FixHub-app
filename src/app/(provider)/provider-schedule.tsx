@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -33,7 +34,7 @@ export default function ProviderScheduleScreen() {
             {/* ── Header ── */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Text style={styles.backIcon}>‹</Text>
+                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Availability Settings</Text>
                 <View style={styles.onlineToggleContainer}>
@@ -194,19 +195,19 @@ export default function ProviderScheduleScreen() {
             {/* ── Bottom Navigation Bar ── */}
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-dashboard')}>
-                    <Text style={styles.navIcon}>🏠</Text>
-                    <Text style={styles.navLabel}>Home</Text>
+                    <MaterialIcons name="dashboard" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
+                    <Text style={styles.navLabel}>Dashboard</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
-                    <Text style={styles.navIconActive}>📅</Text>
+                    <MaterialIcons name="calendar-today" size={24} color="#2563EB" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabelActive}>Schedule</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-earnings')}>
-                    <Text style={styles.navIcon}>💰</Text>
+                    <MaterialIcons name="account-balance-wallet" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Earnings</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-profile-setup')}>
-                    <Text style={styles.navIcon}>👤</Text>
+                    <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Profile</Text>
                 </TouchableOpacity>
             </View>
