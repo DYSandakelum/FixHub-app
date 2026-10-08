@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import fs from "node:fs";
 
 test("payment validates inputs, records once, and preserves state across reload", async ({
   page,
@@ -119,7 +118,6 @@ test("provider demo progression reaches review and screenshots render without ov
   ).toBeVisible();
   await page.getByRole("button", { name: "More options", exact: true }).click();
   await page.getByRole("button", { name: "Reset Demo", exact: true }).click();
-  fs.mkdirSync("docs/member3-screenshots", { recursive: true });
   for (const route of ["payment", "booking-tracking", "chat", "rate-review"]) {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));

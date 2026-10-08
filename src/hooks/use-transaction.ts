@@ -85,8 +85,26 @@ export function useTransaction() {
     }
   }, [id]);
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let active = true;
+    void reload(id)
+      .then(() => {
+        if (active) {
+          setError(null);
+          setLoading(false);
+        }
+      })
+      .catch((e) => {
+        if (active) {
+          setError(
+            e instanceof Error ? e.message : "Could not load this booking.",
+          );
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
   useEffect(() => {
     if (isDemo) return;
     let disposed = false;
