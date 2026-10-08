@@ -271,7 +271,12 @@ const s = StyleSheet.create({
     borderTopRightRadius: 0,
     boxShadow: "0px 4px 9px rgba(36,99,245,0.18)",
   },
-  messageText: { color: c.text, fontSize: 14, lineHeight: 20 },
+  messageText: {
+    color: c.text,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "400",
+  },
   mineText: { color: c.white },
   time: { textAlign: "right", fontSize: 10, color: "#8BA0BC", marginTop: 5 },
   mineTime: { color: "#D4E1FF" },

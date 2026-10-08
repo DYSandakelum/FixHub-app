@@ -55,8 +55,15 @@ export function Header({
 }) {
   const { bookingId } = useLocalSearchParams<{ bookingId?: string }>();
   const goBack = () => {
-    if (router.canGoBack()) { router.back(); return; }
-    router.replace(typeof fallback === 'string' && bookingId ? { pathname: fallback, params: { bookingId } } as Href : fallback);
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace(
+      typeof fallback === "string" && bookingId
+        ? ({ pathname: fallback, params: { bookingId } } as Href)
+        : fallback,
+    );
   };
   return (
     <View style={[s.header, subtitle ? s.chatHeader : undefined]}>
@@ -172,16 +179,20 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
 export function Avatar({
   large,
   customer,
+  prasanna,
 }: {
   large?: boolean;
   customer?: boolean;
+  prasanna?: boolean;
 }) {
   return (
     <Image
       source={
         customer
           ? require("../../../assets/images/transaction/customer.png")
-          : require("../../../assets/images/transaction/provider.png")
+          : prasanna
+            ? require("../../../assets/images/transaction/prasanna.png")
+            : require("../../../assets/images/transaction/provider.png")
       }
       style={[s.avatar, large && s.largeAvatar]}
       accessibilityLabel={customer ? "Customer portrait" : "Provider portrait"}

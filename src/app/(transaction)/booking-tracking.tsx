@@ -61,7 +61,7 @@ export default function BookingTrackingScreen() {
         </View>
         <View style={s.providerDivider} />
         <View style={s.provider}>
-          <Avatar />
+          <Avatar prasanna={tx.isDemo} />
           <View style={s.providerInfo}>
             <Text style={s.name}>{tx.booking.providerName}</Text>
             <Text style={s.speciality}>Specialist Plumber</Text>

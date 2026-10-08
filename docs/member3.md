@@ -41,6 +41,10 @@ Portraits are cropped from the supplied prototype. The PDF uses Prasanna on paym
 
 ## Verification checklist
 
+TypeScript, Expo lint, and the Expo web export have passed. Five Playwright checks passed using headless Microsoft Edge at 390 × 844, with an additional 320 × 568 payment layout check. They cover payment validation/persistence, chat send/delete/persistence, review create/edit/delete/persistence, booking progression and screenshots without horizontal overflow, and real-booking errors without demo fallback. Screenshots are in `docs/member3-screenshots/`. Native Android/iOS and the live database/gateway have not been verified.
+
+Re-run with `npm run typecheck`, `npm run lint`, and `npm run test:member3`. Browser tests use installed Edge on Windows; on other systems install Playwright Chromium with `npx playwright install chromium`. The existing web theme hydration hook was adjusted to pass the current Expo lint rules.
+
 - Payment: empty card errors, future expiry, successful demo payment, already recorded payment, each method.
 - Tracking: current stage, options, progression to Completed, review navigation, reset.
 - Chat: blank send disabled, message send, deletion, quick messages, persistence after reload.
