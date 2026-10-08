@@ -11,8 +11,10 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCurrency } from './settingsStore';
 
 export default function RequestDetailsScreen() {
+    const { formatCurrency } = useCurrency();
     const router = useRouter();
 
     return (
@@ -79,7 +81,7 @@ export default function RequestDetailsScreen() {
                         </View>
                         <View style={styles.infoTextContainer}>
                             <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
-                            <Text style={styles.payoutValue}>$85.00</Text>
+                            <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
                         </View>
                     </View>
                 </View>
