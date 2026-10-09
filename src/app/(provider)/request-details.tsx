@@ -1,144 +1,169 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-    Image,
-    Linking,
-    Platform,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCurrency } from './settingsStore';
 
 export default function RequestDetailsScreen() {
     const { formatCurrency } = useCurrency();
     const router = useRouter();
+    const routeCoordinates = [
+        { latitude: 47.5950, longitude: -122.3380 },
+        { latitude: 47.5980, longitude: -122.3360 },
+        { latitude: 47.6020, longitude: -122.3340 },
+        { latitude: 47.6062, longitude: -122.3321 },
+    ];
+
+    const [providerLocation, setProviderLocation] = useState(routeCoordinates[0]);
+
+    useEffect(() => {
+        let step = 0;
+        let segment = 0;
+        const totalSteps = 15; // Smoothness factor per segment
+
+        const timer = setInterval(() => {
+            if (segment >= routeCoordinates.length - 1) {
+                clearInterval(timer);
+                return;
+            }
+
+            const startPt = routeCoordinates[segment];
+            const endPt = routeCoordinates[segment + 1];
+
+            step++;
+            const progress = step / totalSteps;
+
+            setProviderLocation({
+                latitude: startPt.latitude + (endPt.latitude - startPt.latitude) * progress,
+                longitude: startPt.longitude + (endPt.longitude - startPt.longitude) * progress,
+            });
+
+            if (step >= totalSteps) {
+                step = 0;
+                segment++;
+            }
+        }, 300); // 300ms update rate
+
+        return () => clearInterval(timer);
+    }, []);
 
     return (
-        <SafeAreaView style={styles.screen}>
-            {/* ── Header ── */}
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Request Details</Text>
-                <TouchableOpacity style={styles.moreButton}>
-                    <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-                {/* ── Profile Card ── */}
-                <View style={styles.profileCard}>
-                    <View style={styles.avatarPlaceholder}>
-                        <Text style={styles.avatarInitials}>AC</Text>
-                    </View>
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.profileName}>Alice Cooper</Text>
-                        <View style={styles.ratingRow}>
-                            <Text style={styles.starIcon}>★</Text>
-                            <Text style={styles.ratingText}>4.9 (42 reviews)</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* ── Info Box ── */}
-                <View style={styles.infoBox}>
-                    {/* Date & Time */}
-                    <View style={styles.infoRow}>
-                        <View style={styles.iconBox}>
-                            <MaterialIcons name="calendar-today" size={16} color="#6B7280" />
-                        </View>
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>DATE & TIME</Text>
-                            <Text style={styles.infoValue}>Today, Oct 16 • 2:00 PM - 4:00 PM</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.divider} />
-
-                    {/* Service Address */}
-                    <View style={styles.infoRow}>
-                        <View style={styles.iconBox}>
-                            <Text style={styles.icon}>📍</Text>
-                        </View>
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>SERVICE ADDRESS</Text>
-                            <Text style={styles.infoValue}>1248 Oakwood Dr, Apt 4B, Seattle WA</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.divider} />
-
-                    {/* Estimated Payout */}
-                    <View style={styles.infoRow}>
-                        <View style={styles.iconBox}>
-                            <Text style={styles.icon}>💳</Text>
-                        </View>
-                        <View style={styles.infoTextContainer}>
-                            <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
-                            <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* ── Location Map ── */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Location Map</Text>
-                </View>
-                <TouchableOpacity
-                    style={styles.mapTouchableContainer}
-                    activeOpacity={0.8}
-                    onPress={() => {
-                        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
-                        const latLng = `47.6062,-122.3321`;
-                        const label = 'Job Location';
-                        const url = Platform.select({
-                            ios: `${scheme}${label}@${latLng}`,
-                            android: `${scheme}${latLng}(${label})`
-                        }) || '';
-                        Linking.openURL(url);
+        <View style={styles.screen}>
+            {/* ── Background Map ── */}
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '55%' }}>
+                <MapView
+                    style={{ width: '100%', height: '100%' }}
+                    initialRegion={{
+                        latitude: 47.6010,
+                        longitude: -122.3350,
+                        latitudeDelta: 0.03,
+                        longitudeDelta: 0.03,
                     }}
                 >
-                    <Image
-                        source={{ uri: 'https://staticmap.openstreetmap.de/staticmap.php?center=47.6062,-122.3321&zoom=14&size=600x300&markers=47.6062,-122.3321,red-pushpin' }}
-                        style={{ width: '100%', height: '100%', position: 'absolute' }}
-                        resizeMode="cover"
+                    <Polyline
+                        coordinates={routeCoordinates}
+                        strokeColor="#059669"
+                        strokeWidth={4}
                     />
-                    <View style={styles.mapOverlay}>
-                        <Text style={styles.mapOverlayText}>Open in Maps</Text>
-                    </View>
-                </TouchableOpacity>
-
-                {/* ── Description of Work ── */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Description of Work</Text>
-                </View>
-                <Text style={styles.descriptionText}>
-                    Water dripping beneath the master kitchen sink cupboard. Requires checking the seal and replacing standard trap or pipeline components if split.
-                </Text>
-
-            </ScrollView>
-
-            {/* ── Bottom Action Bar ── */}
-            <View style={styles.bottomBar}>
-                <TouchableOpacity style={styles.chatButton} onPress={() => router.push('/(provider)/chat')}>
-                    <MaterialIcons name="chat-bubble-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                    <Text style={styles.chatButtonText}>Message Customer</Text>
-                </TouchableOpacity>
+                    <Marker
+                        coordinate={providerLocation}
+                        pinColor="orange"
+                    />
+                    <Marker
+                        coordinate={{ latitude: 47.6062, longitude: -122.3321 }}
+                        pinColor="green"
+                    />
+                </MapView>
             </View>
-        </SafeAreaView>
+
+            <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+                {/* ── Header ── */}
+                <View style={styles.header}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <MaterialIcons name="chevron-left" size={28} color="#111827" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.moreButton}>
+                        <MaterialIcons name="my-location" size={24} color="#111827" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* ── Scrollable Sheet ── */}
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <View style={styles.sheetContainer}>
+
+                        {/* ── Header Address (Like Ride Share) ── */}
+                        <View style={{ marginBottom: 24 }}>
+                            <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 6 }}>1248 Oakwood Dr, Apt 4B</Text>
+                            <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>Seattle WA • 2.4 km away (Est. 8 min)</Text>
+                        </View>
+
+                        {/* ── Profile Card ── */}
+                        <View style={styles.profileCard}>
+                            <View style={styles.avatarPlaceholder}>
+                                <Text style={styles.avatarInitials}>AC</Text>
+                            </View>
+                            <View style={styles.profileInfo}>
+                                <Text style={styles.profileName}>Alice Cooper</Text>
+                                <View style={styles.ratingRow}>
+                                    <Text style={styles.starIcon}>★</Text>
+                                    <Text style={styles.ratingText}>4.9 (42 reviews)</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* ── Info Box ── */}
+                        <View style={styles.infoBox}>
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconBox}><MaterialIcons name="calendar-today" size={16} color="#6B7280" /></View>
+                                <View style={styles.infoTextContainer}>
+                                    <Text style={styles.infoLabel}>DATE & TIME</Text>
+                                    <Text style={styles.infoValue}>Today, Oct 16 • 2:00 PM - 4:00 PM</Text>
+                                </View>
+                            </View>
+                            <View style={styles.divider} />
+                            <View style={styles.infoRow}>
+                                <View style={styles.iconBox}><Text style={styles.icon}>💳</Text></View>
+                                <View style={styles.infoTextContainer}>
+                                    <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
+                                    <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* ── Description of Work ── */}
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Description of Work</Text>
+                        </View>
+                        <Text style={styles.descriptionText}>
+                            Water dripping beneath the master kitchen sink cupboard. Requires checking the seal and replacing standard trap or pipeline components if split.
+                        </Text>
+                    </View>
+                </ScrollView>
+
+                {/* ── Bottom Action Bar ── */}
+                <View style={styles.bottomBar}>
+                    <TouchableOpacity style={styles.chatButton} onPress={() => router.push('/(provider)/chat')}>
+                        <MaterialIcons name="chat-bubble-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+                        <Text style={styles.chatButtonText}>Message Customer</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#fff',
     },
     // Header
     header: {
@@ -147,45 +172,51 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 14,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        zIndex: 10,
     },
     backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    backIcon: {
-        fontSize: 24,
-        color: '#2563EB',
-        lineHeight: 28, // better centering
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#111827',
     },
     moreButton: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+        elevation: 4,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    moreIcon: {
-        fontSize: 20,
-        color: '#9CA3AF',
-        fontWeight: '700',
-    },
-
     // Scroll Content
     scrollContent: {
-        padding: 16,
+        paddingTop: '60%',
+    },
+    sheetContainer: {
+        backgroundColor: '#FAFAFA',
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
+        padding: 24,
+        paddingTop: 32,
         paddingBottom: 40,
+        minHeight: 700,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
     },
 
     // Profile Card
