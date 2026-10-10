@@ -1,4 +1,5 @@
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +10,7 @@ import { useAuth } from '@/context/auth-context';
 
 export default function ProviderSettingsScreen() {
     const router = useRouter();
-    const { autoAccept, newRequestAlerts, appLanguage } = useSettings();
+    const { autoAccept, newRequestAlerts, appLanguage, serviceArea, vacationMode } = useSettings();
     const { t } = useTranslation();
     const { signOut } = useAuth();
 
@@ -28,15 +29,17 @@ export default function ProviderSettingsScreen() {
     };
 
     const [isEditingLanguage, setIsEditingLanguage] = useState(false);
-    const [vacationMode, setVacationMode] = useState(false);
+    const [isEditingServiceArea, setIsEditingServiceArea] = useState(false);
+    const [tempServiceArea, setTempServiceArea] = useState("");
     const [quietHours, setQuietHours] = useState(true);
     const [darkMode, setDarkMode] = useState(false);
 
     const [startTime, setStartTime] = useState("8:00 AM");
     const [endTime, setEndTime] = useState("6:00 PM");
     const [isEditingHours, setIsEditingHours] = useState(false);
-    const [tempStart, setTempStart] = useState("");
-    const [tempEnd, setTempEnd] = useState("");
+    const [showPicker, setShowPicker] = useState<'start' | 'end' | null>(null);
+    const [tempStart, setTempStart] = useState(new Date(new Date().setHours(8, 0, 0)));
+    const [tempEnd, setTempEnd] = useState(new Date(new Date().setHours(18, 0, 0)));
 
     const [bankName, setBankName] = useState("Commercial Bank of Ceylon");
     const [accNumber, setAccNumber] = useState("4821");
@@ -77,7 +80,7 @@ export default function ProviderSettingsScreen() {
                         </View>
                         <Switch
                             value={vacationMode}
-                            onValueChange={setVacationMode}
+                            onValueChange={(val) => settingsStore.setVacationMode(val)}
                             trackColor={{ false: '#CBD5E1', true: '#2563EB' }}
                             thumbColor="#fff"
                             style={styles.switchPad}
@@ -91,7 +94,18 @@ export default function ProviderSettingsScreen() {
                 {/* ── WORK PREFERENCES ── */}
                 <Text style={styles.sectionLabel}>{t('WORK PREFERENCES')}</Text>
                 <View style={[styles.cardBlock, { marginBottom: 24 }]}>
-                    <TouchableOpacity style={styles.rowItem} onPress={() => { setTempStart(startTime); setTempEnd(endTime); setIsEditingHours(true); }}>
+                    <TouchableOpacity style={styles.rowItem} onPress={() => { setTempServiceArea(serviceArea); setIsEditingServiceArea(true); }}>
+                        <View style={styles.iconBox}>
+                            <Feather name="map-pin" size={20} color="#2563EB" />
+                        </View>
+                        <View style={styles.rowTextCol}>
+                            <Text style={styles.itemTitle}>{t('Service area')}</Text>
+                        </View>
+                        <Text style={styles.rowRightText}>{serviceArea}</Text>
+                        <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
+                    </TouchableOpacity>
+                    <View style={styles.divider} />
+                    <TouchableOpacity style={styles.rowItem} onPress={() => { setIsEditingHours(true); }}>
                         <View style={styles.iconBox}>
                             <Feather name="clock" size={20} color="#2563EB" />
                         </View>
@@ -254,25 +268,48 @@ export default function ProviderSettingsScreen() {
                         </View>
                         <Text style={styles.editModalSubtitle}>Set your preferred availability</Text>
 
-                        <View style={styles.editModalInputWrapper}>
-                            <Text style={styles.editModalInputLabel}>Start Time</Text>
-                            <TextInput
-                                style={styles.editModalTextInput}
-                                value={tempStart}
-                                onChangeText={setTempStart}
-                                placeholder="E.g. 8:00 AM"
-                            />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                            {/* Start Time Column */}
+                            <TouchableOpacity style={{ flex: 1, marginRight: 8, padding: 14, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, alignItems: 'center', backgroundColor: showPicker === 'start' ? '#EFF6FF' : '#F8FAFC' }} onPress={() => setShowPicker('start')}>
+                                <Text style={styles.editModalInputLabel}>Start Time</Text>
+                                <Text style={{ marginTop: 8, fontSize: 16, fontWeight: 'bold', color: '#0F172A' }}>
+                                    {tempStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* End Time Column */}
+                            <TouchableOpacity style={{ flex: 1, marginLeft: 8, padding: 14, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, alignItems: 'center', backgroundColor: showPicker === 'end' ? '#EFF6FF' : '#F8FAFC' }} onPress={() => setShowPicker('end')}>
+                                <Text style={styles.editModalInputLabel}>End Time</Text>
+                                <Text style={{ marginTop: 8, fontSize: 16, fontWeight: 'bold', color: '#0F172A' }}>
+                                    {tempEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                </Text>
+                            </TouchableOpacity>
                         </View>
 
-                        <View style={[styles.editModalInputWrapper, { marginTop: 12 }]}>
-                            <Text style={styles.editModalInputLabel}>End Time</Text>
-                            <TextInput
-                                style={styles.editModalTextInput}
-                                value={tempEnd}
-                                onChangeText={setTempEnd}
-                                placeholder="E.g. 6:00 PM"
-                            />
-                        </View>
+                        {showPicker && (
+                            <View style={{ marginTop: 16, alignItems: 'center' }}>
+                                <DateTimePicker
+                                    value={showPicker === 'start' ? tempStart : tempEnd}
+                                    mode="time"
+                                    is24Hour={false}
+                                    display="spinner"
+                                    onChange={(event, date) => {
+                                        if (Platform.OS === 'android') {
+                                            setShowPicker(null);
+                                        }
+                                        if (date) {
+                                            if (showPicker === 'start') setTempStart(date);
+                                            else setTempEnd(date);
+                                        }
+                                    }}
+                                />
+                                {Platform.OS === 'ios' && (
+                                    <TouchableOpacity style={{ marginTop: 12, paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#2563EB', borderRadius: 8 }} onPress={() => setShowPicker(null)}>
+                                        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Confirm selection</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        )}
 
                         <View style={styles.editModalActionRow}>
                             <TouchableOpacity onPress={() => setIsEditingHours(false)}>
@@ -281,8 +318,8 @@ export default function ProviderSettingsScreen() {
                             <TouchableOpacity
                                 style={styles.editModalSaveBtn}
                                 onPress={() => {
-                                    setStartTime(tempStart);
-                                    setEndTime(tempEnd);
+                                    setStartTime(tempStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
+                                    setEndTime(tempEnd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
                                     setIsEditingHours(false);
                                 }}
                             >
@@ -425,6 +462,53 @@ export default function ProviderSettingsScreen() {
 
                         <View style={[styles.editModalActionRow, { justifyContent: 'center' }]}>
                             <TouchableOpacity onPress={() => setIsEditingLanguage(false)}>
+                                <Text style={styles.editModalCancelText}>{t('Cancel')}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
+
+            {/* ── Edit Service Area Modal ── */}
+            {isEditingServiceArea && (
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.editModalContainer, { maxHeight: '80%' }]}>
+                        <View style={styles.editModalHeader}>
+                            <Text style={styles.editModalTitle}>{t('Service Area')}</Text>
+                            <Feather name="map-pin" size={18} color="#2563EB" />
+                        </View>
+                        <Text style={styles.editModalSubtitle}>{t('Select your operation region')}</Text>
+
+                        <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                            {['Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle'].map((district) => (
+                                <TouchableOpacity
+                                    key={district}
+                                    style={[
+                                        styles.editModalInputWrapper,
+                                        { marginBottom: 8, flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
+                                        serviceArea === district ? { backgroundColor: '#EFF6FF', borderColor: '#2563EB' } : { borderColor: '#E2E8F0' }
+                                    ]}
+                                    onPress={() => {
+                                        settingsStore.setServiceArea(district);
+                                        setIsEditingServiceArea(false);
+                                    }}
+                                >
+                                    <Ionicons
+                                        name={serviceArea === district ? "radio-button-on" : "radio-button-off"}
+                                        size={20}
+                                        color={serviceArea === district ? "#2563EB" : "#9CA3AF"}
+                                        style={{ marginRight: 12 }}
+                                    />
+                                    <Text style={[
+                                        styles.editModalTextInput,
+                                        { fontWeight: serviceArea === district ? '700' : '500' }
+                                    ]}>{district}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+
+                        <View style={[styles.editModalActionRow, { justifyContent: 'center' }]}>
+                            <TouchableOpacity onPress={() => setIsEditingServiceArea(false)}>
                                 <Text style={styles.editModalCancelText}>{t('Cancel')}</Text>
                             </TouchableOpacity>
                         </View>

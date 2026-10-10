@@ -14,7 +14,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getRoleNameString, useSettings } from './settingsStore';
+import { supabase } from '../../lib/supabase';
+import { getRoleNameString, settingsStore, useSettings } from './settingsStore';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -41,11 +42,17 @@ const WORKING_HISTORY = [
 
 export default function ProviderDashboardScreen() {
     const router = useRouter();
-    const { serviceCategory, autoAccept, newRequestAlerts } = useSettings();
-    const [isOnline, setIsOnline] = useState(true);
-    const [isWaiting, setIsWaiting] = useState(false);
+    const { serviceCategory, autoAccept, newRequestAlerts, providerName, vacationMode } = useSettings();
+    const isOnline = !vacationMode;
+    const [isWaiting, setIsWaiting] = useState(true);
+    const [newRequest, setNewRequest] = useState<any>(null);
+    const [selectedJob, setSelectedJob] = useState<any>(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [showBreakdown, setShowBreakdown] = useState(false);
+
+    const [workingHistory, setWorkingHistory] = useState(WORKING_HISTORY);
+    const [earningsTotal, setEarningsTotal] = useState(1240.50);
+    const [completedJobsCount, setCompletedJobsCount] = useState(14);
 
     // Static state for the schedule list that gets updated when job is accepted
     const [scheduledJobs, setScheduledJobs] = useState([
@@ -53,25 +60,28 @@ export default function ProviderDashboardScreen() {
             id: '1',
             initial: 'DK',
             customerName: 'Dunil K.',
-            serviceType: 'Pipe leak · Maharagama',
+            serviceType: 'Pipe leak',
+            address: 'Highlevel Rd, Maharagama',
             time: '11:30 AM',
             isNext: true,
             isTomorrow: false,
         }
     ]);
 
-    const handleAcceptJob = () => {
+    const handleAcceptJob = (jobPayload?: any) => {
         setIsWaiting(true);
         // Push the accepted job into the schedule
         setScheduledJobs(prev => [...prev, {
-            id: '2',
-            initial: 'NC',
-            customerName: 'New Customer',
-            serviceType: 'AC repair · Nugegoda',
-            time: '16:00',
+            id: jobPayload?.id?.toString() || Math.random().toString(),
+            initial: jobPayload?.customerName ? jobPayload.customerName[0] : 'N',
+            customerName: jobPayload?.customerName || 'New Customer',
+            serviceType: jobPayload?.serviceType || jobPayload?.service_title || 'AC repair',
+            time: jobPayload?.time || jobPayload?.scheduled_time || '16:00',
+            address: jobPayload?.address || '1248 Oakwood Dr, Apt 4B',
             isNext: false,
             isTomorrow: true,
         }]);
+        setNewRequest(null);
     };
 
     useEffect(() => {
@@ -87,6 +97,77 @@ export default function ProviderDashboardScreen() {
         }
     }, [isOnline, isWaiting, autoAccept, scheduledJobs.length]);
 
+    useEffect(() => {
+        if (!isOnline) {
+            // Keep UI offline/waiting if vacation mode is on
+            return;
+        }
+
+        const requestChannel = supabase
+            .channel('public:job_requests')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'job_requests' },
+                (payload) => {
+                    console.log('New request received!', payload.new);
+                    if (autoAccept) {
+                        handleAcceptJob(payload.new);
+                        setShowNotifications(true);
+                    } else {
+                        setNewRequest(payload.new);
+                        setIsWaiting(false);
+                    }
+                }
+            )
+            .subscribe();
+
+        const paymentChannel = supabase
+            .channel('public:payments')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'payments' }, (payload) => {
+                const amount = parseFloat(payload.new.amount || payload.new.price || 0);
+                setEarningsTotal(prev => prev + amount);
+                setCompletedJobsCount(prev => prev + 1);
+            })
+            .subscribe();
+
+        const scheduleChannel = supabase
+            .channel('public:jobs')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jobs' }, (payload) => {
+                setScheduledJobs(prev => [...prev, {
+                    id: payload.new.id || Math.random().toString(),
+                    initial: (payload.new.customerName || 'N')[0],
+                    customerName: payload.new.customerName || 'New Customer',
+                    serviceType: payload.new.serviceType || payload.new.serviceTitle || 'Scheduled Job',
+                    time: payload.new.time || '14:00',
+                    address: payload.new.address || '1248 Oakwood Dr, Apt 4B',
+                    isNext: false,
+                    isTomorrow: false,
+                }]);
+            })
+            .subscribe();
+
+        const reviewChannel = supabase
+            .channel('public:reviews')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reviews' }, (payload) => {
+                setWorkingHistory(prev => [{
+                    id: payload.new.id || Math.random().toString(),
+                    customerName: payload.new.customerName || 'Happy Customer',
+                    serviceTitle: payload.new.serviceTitle || 'Completed Service',
+                    date: payload.new.date || 'Today',
+                    rating: payload.new.rating || 5.0,
+                    review: payload.new.review || 'Great work!'
+                }, ...prev]);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(requestChannel);
+            supabase.removeChannel(paymentChannel);
+            supabase.removeChannel(scheduleChannel);
+            supabase.removeChannel(reviewChannel);
+        };
+    }, [isOnline, autoAccept]);
+
     return (
         <View style={styles.screen}>
             <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
@@ -100,7 +181,7 @@ export default function ProviderDashboardScreen() {
                                 <Text style={styles.avatarText}>MV</Text>
                             </View>
                             <View>
-                                <Text style={styles.profileName}>Judith Glavour</Text>
+                                <Text style={styles.profileName}>{providerName}</Text>
                                 <Text style={styles.profileSubtitle}>{getRoleNameString(serviceCategory)} jobs</Text>
                             </View>
                         </View>
@@ -109,7 +190,7 @@ export default function ProviderDashboardScreen() {
                                 <Feather name="bell" size={20} color="#fff" />
                                 {newRequestAlerts && <View style={styles.notificationDot} />}
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.iconButton}>
+                            <TouchableOpacity style={styles.iconButton} onPress={() => router.push('/(provider)/service-provider-settings')}>
                                 <Feather name="settings" size={20} color="#fff" />
                             </TouchableOpacity>
                         </View>
@@ -117,16 +198,20 @@ export default function ProviderDashboardScreen() {
 
                     <View style={styles.statusBox}>
                         <View style={styles.statusBoxLeft}>
-                            <View style={styles.statusDot} />
+                            <View style={[styles.statusDot, !isOnline && { backgroundColor: '#94A3B8' }]} />
                             <View>
-                                <Text style={styles.statusTitle}>You're online</Text>
-                                <Text style={styles.statusSubtitle}>Receiving new job requests</Text>
+                                <Text style={styles.statusTitle}>
+                                    {isOnline ? "You're online" : "You're offline"}
+                                </Text>
+                                <Text style={styles.statusSubtitle}>
+                                    {isOnline ? "Receiving new job requests" : "Vacation mode active"}
+                                </Text>
                             </View>
                         </View>
                         <Switch
                             value={isOnline}
                             onValueChange={(val) => {
-                                setIsOnline(val);
+                                settingsStore.setVacationMode(!val);
                                 // If toggling offline while a request is pending (isWaiting === false), auto delete it
                                 if (!val && !isWaiting) {
                                     setIsWaiting(true);
@@ -149,12 +234,12 @@ export default function ProviderDashboardScreen() {
 
                     <View style={styles.earningsAmountRow}>
                         <Text style={styles.currencySymbol}>Rs</Text>
-                        <Text style={styles.earningsAmount}>1,240.50</Text>
+                        <Text style={styles.earningsAmount}>{earningsTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}</Text>
                     </View>
 
                     <View style={styles.jobsCompletedBadge}>
                         <Feather name="check" size={14} color="#059669" />
-                        <Text style={styles.jobsCompletedText}>14 jobs completed</Text>
+                        <Text style={styles.jobsCompletedText}>{completedJobsCount} jobs completed</Text>
                     </View>
 
                     <View style={styles.earningsDivider} />
@@ -169,6 +254,7 @@ export default function ProviderDashboardScreen() {
                 </View>
             </View>
 
+
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -181,13 +267,13 @@ export default function ProviderDashboardScreen() {
                         <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>You are currently offline</Text>
                         <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>Go online to receive new job requests matching your category.</Text>
                     </View>
-                ) : isWaiting ? (
+                ) : (isWaiting && !autoAccept) ? (
                     <View style={[styles.newRequestCard, { justifyContent: 'center', alignItems: 'center', minHeight: 220, paddingHorizontal: 30 }]}>
                         <ActivityIndicator size="large" color="#2563EB" style={{ marginBottom: 16 }} />
                         <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>Waiting for new requests...</Text>
                         <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>Keep your profile active. We'll notify you when a job matches your area.</Text>
                     </View>
-                ) : (
+                ) : (newRequest && !autoAccept) ? (
                     <View style={styles.newRequestCard}>
                         <View style={styles.requestCardHeader}>
                             <Text style={styles.requestTitleText}>New request</Text>
@@ -201,16 +287,16 @@ export default function ProviderDashboardScreen() {
                             <View style={styles.progressBarFill} />
                         </View>
 
-                        <Text style={styles.serviceTitle}>AC repair and gas refill</Text>
+                        <Text style={styles.serviceTitle}>{newRequest?.service_title || newRequest?.title || 'AC repair and gas refill'}</Text>
 
                         <View style={styles.timeLocRow}>
                             <View style={styles.infoPill}>
                                 <Feather name="calendar" size={14} color="#4B5563" />
-                                <Text style={styles.infoPillText}>Tomorrow, 16:00</Text>
+                                <Text style={styles.infoPillText}>{newRequest?.date || newRequest?.scheduled_time || 'Tomorrow, 16:00'}</Text>
                             </View>
                             <View style={styles.infoPill}>
                                 <Feather name="map-pin" size={14} color="#4B5563" />
-                                <Text style={styles.infoPillText}>Nugegoda</Text>
+                                <Text style={styles.infoPillText}>{newRequest?.location || newRequest?.city || 'Nugegoda'}</Text>
                             </View>
                         </View>
 
@@ -218,9 +304,9 @@ export default function ProviderDashboardScreen() {
                         <View style={styles.priceRow}>
                             <View style={styles.priceContainer}>
                                 <Text style={styles.priceTextSmall}>Rs </Text>
-                                <Text style={styles.priceTextBig}>6,500</Text>
+                                <Text style={styles.priceTextBig}>{newRequest?.price || newRequest?.amount || '6,500'}</Text>
                             </View>
-                            <Text style={styles.distanceText}>3.2 km away</Text>
+                            <Text style={styles.distanceText}>{newRequest?.distance || '3.2 km'} away</Text>
                         </View>
 
                         <View style={styles.actionsRow}>
@@ -232,7 +318,7 @@ export default function ProviderDashboardScreen() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                )}
+                ) : null}
 
                 {/* ── Today's Schedule ── */}
                 <View style={styles.sectionHeader}>
@@ -243,7 +329,11 @@ export default function ProviderDashboardScreen() {
                 </View>
 
                 {scheduledJobs.map((job) => (
-                    <View key={job.id} style={styles.jobItemCard}>
+                    <TouchableOpacity key={job.id} style={styles.jobItemCard} onPress={() => {
+                        settingsStore.setActiveJobDetails(job);
+                        const urlStr = `/(provider)/request-details?customerName=${encodeURIComponent(job.customerName)}&serviceType=${encodeURIComponent(job.serviceType)}&initial=${encodeURIComponent(job.initial)}&address=${encodeURIComponent(job.address)}`;
+                        router.push(urlStr as any);
+                    }}>
                         <View style={job.isTomorrow ? styles.jobItemAvatarLight : styles.jobItemAvatar}>
                             <Text style={job.isTomorrow ? styles.jobItemAvatarTextLight : styles.jobItemAvatarText}>{job.initial}</Text>
                         </View>
@@ -254,22 +344,22 @@ export default function ProviderDashboardScreen() {
                         <View style={styles.jobItemRight}>
                             <Text style={styles.jobItemTime}>{job.time}</Text>
                             {job.isNext && (
-                                <View style={styles.nextBadge}>
-                                    <Text style={styles.nextBadgeText}>Next</Text>
+                                <View style={{ backgroundColor: '#2563EB', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 16 }}>
+                                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Start</Text>
                                 </View>
                             )}
                             {job.isTomorrow && (
                                 <Text style={styles.jobItemTomorrow}>Tomorrow</Text>
                             )}
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 ))}
 
                 {/* ── Working History ── */}
                 <View style={[styles.sectionHeader, { marginTop: 16 }]}>
                     <Text style={styles.sectionTitle}>Working History & Reviews</Text>
                 </View>
-                {WORKING_HISTORY.map((item) => (
+                {workingHistory.map((item) => (
                     <View key={item.id} style={styles.historyCard}>
                         <View style={styles.historyHeader}>
                             <Text style={styles.historyCustomer}>{item.customerName}</Text>
@@ -308,6 +398,8 @@ export default function ProviderDashboardScreen() {
                     <Text style={styles.navLabel}>Profile</Text>
                 </TouchableOpacity>
             </View>
+
+
             {/* ── Notifications Modal ── */}
             {showNotifications && (
                 <View style={styles.modalOverlay}>

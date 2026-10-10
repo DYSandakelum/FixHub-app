@@ -7,10 +7,10 @@ import { useAuth } from '@/context/auth-context';
 
 export default function ProviderProfileScreen() {
     const router = useRouter();
-    const { serviceCategory } = useSettings();
+    const { serviceCategory, serviceArea, providerName: settingsProviderName } = useSettings();
     const { user, profile, signOut } = useAuth();
 
-    const providerName = profile?.full_name || user?.user_metadata?.full_name || 'Service Provider';
+    const providerName = profile?.full_name || user?.user_metadata?.full_name || settingsProviderName || 'Service Provider';
 
     const handleLogout = () => {
         Alert.alert('Log Out', 'Are you sure you want to log out of your FixHub account?', [
@@ -39,7 +39,7 @@ export default function ProviderProfileScreen() {
                         </View>
                         <View style={styles.heroInfo}>
                             <Text style={styles.heroName}>{providerName}</Text>
-                            <Text style={styles.heroSubtitle}>{getRoleNameString(serviceCategory)} · Colombo</Text>
+                            <Text style={styles.heroSubtitle}>{getRoleNameString(serviceCategory)} · {serviceArea}</Text>
                         </View>
                     </View>
                 </SafeAreaView>

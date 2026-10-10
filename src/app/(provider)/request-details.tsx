@@ -5,16 +5,26 @@ import {
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCurrency } from './settingsStore';
+import { supabase } from '../../lib/supabase';
+import { useCurrency, useSettings } from './settingsStore';
 
 export default function RequestDetailsScreen() {
     const { formatCurrency } = useCurrency();
     const router = useRouter();
+    const { activeJobDetails, baseFee } = useSettings();
+
+    // Parse dynamic user selection from routing
+    const customerName = activeJobDetails?.customerName || 'Alice Cooper';
+    const initName = activeJobDetails?.initial || 'AC';
+    const address = activeJobDetails?.address || '1248 Oakwood Dr, Apt 4B';
+    const serviceType = activeJobDetails?.serviceType || 'Plumbing';
+
     const routeCoordinates = [
         { latitude: 47.5950, longitude: -122.3380 },
         { latitude: 47.5980, longitude: -122.3360 },
@@ -23,6 +33,9 @@ export default function RequestDetailsScreen() {
     ];
 
     const [providerLocation, setProviderLocation] = useState(routeCoordinates[0]);
+    const [jobStatus, setJobStatus] = useState<'pending' | 'in-progress' | 'completed'>('pending');
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [materialCost, setMaterialCost] = useState('');
 
     useEffect(() => {
         let step = 0;
@@ -77,10 +90,12 @@ export default function RequestDetailsScreen() {
                         coordinate={providerLocation}
                         pinColor="orange"
                     />
-                    <Marker
-                        coordinate={{ latitude: 47.6062, longitude: -122.3321 }}
-                        pinColor="green"
-                    />
+                    <Marker coordinate={{ latitude: 47.6062, longitude: -122.3321 }}>
+                        <View style={{ backgroundColor: '#fff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 2, borderColor: '#059669', flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialIcons name="person-pin-circle" size={18} color="#059669" />
+                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#059669', marginLeft: 4 }}>Customer</Text>
+                        </View>
+                    </Marker>
                 </MapView>
             </View>
 
@@ -101,21 +116,25 @@ export default function RequestDetailsScreen() {
 
                         {/* ── Header Address (Like Ride Share) ── */}
                         <View style={{ marginBottom: 24 }}>
-                            <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 6 }}>1248 Oakwood Dr, Apt 4B</Text>
-                            <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>Seattle WA • 2.4 km away (Est. 8 min)</Text>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                                <Text style={{ fontSize: 20, fontWeight: '800', color: '#111827', flex: 1 }}>{address}</Text>
+                                <View style={{ backgroundColor: jobStatus === 'completed' ? '#10B981' : jobStatus === 'in-progress' ? '#F59E0B' : '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, marginLeft: 12 }}>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: jobStatus === 'completed' || jobStatus === 'in-progress' ? '#fff' : '#2563EB' }}>
+                                        {jobStatus === 'completed' ? 'COMPLETED' : jobStatus === 'in-progress' ? 'IN PROGRESS' : 'PENDING'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{serviceType} • 2.4 km away (Est. 8 min)</Text>
                         </View>
 
                         {/* ── Profile Card ── */}
                         <View style={styles.profileCard}>
                             <View style={styles.avatarPlaceholder}>
-                                <Text style={styles.avatarInitials}>AC</Text>
+                                <Text style={styles.avatarInitials}>{initName}</Text>
                             </View>
                             <View style={styles.profileInfo}>
-                                <Text style={styles.profileName}>Alice Cooper</Text>
-                                <View style={styles.ratingRow}>
-                                    <Text style={styles.starIcon}>★</Text>
-                                    <Text style={styles.ratingText}>4.9 (42 reviews)</Text>
-                                </View>
+                                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500', marginBottom: 2 }}>Customer</Text>
+                                <Text style={styles.profileName}>{customerName}</Text>
                             </View>
                         </View>
 
@@ -125,15 +144,15 @@ export default function RequestDetailsScreen() {
                                 <View style={styles.iconBox}><MaterialIcons name="calendar-today" size={16} color="#6B7280" /></View>
                                 <View style={styles.infoTextContainer}>
                                     <Text style={styles.infoLabel}>DATE & TIME</Text>
-                                    <Text style={styles.infoValue}>Today, Oct 16 • 2:00 PM - 4:00 PM</Text>
+                                    <Text style={styles.infoValue}>Today • {activeJobDetails?.time || '2:00 PM'}</Text>
                                 </View>
                             </View>
                             <View style={styles.divider} />
                             <View style={styles.infoRow}>
                                 <View style={styles.iconBox}><Text style={styles.icon}>💳</Text></View>
                                 <View style={styles.infoTextContainer}>
-                                    <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
-                                    <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
+                                    <Text style={styles.infoLabel}>BASE FEE</Text>
+                                    <Text style={styles.payoutValue}>{formatCurrency(baseFee)}</Text>
                                 </View>
                             </View>
                         </View>
@@ -150,11 +169,94 @@ export default function RequestDetailsScreen() {
 
                 {/* ── Bottom Action Bar ── */}
                 <View style={styles.bottomBar}>
-                    <TouchableOpacity style={styles.chatButton} onPress={() => router.push('/(provider)/chat')}>
-                        <MaterialIcons name="chat-bubble-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                        <Text style={styles.chatButtonText}>Message Customer</Text>
-                    </TouchableOpacity>
+                    {jobStatus === 'pending' ? (
+                        <>
+                            <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D1D5DB' }]} onPress={() => router.push('/(provider)/chat')}>
+                                <MaterialIcons name="chat-bubble-outline" size={20} color="#4B5563" style={{ marginRight: 8 }} />
+                                <Text style={[styles.chatButtonText, { color: '#4B5563' }]}>Message Customer</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#2563EB', marginTop: 8 }]} onPress={() => setJobStatus('in-progress')}>
+                                <MaterialIcons name="play-arrow" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                <Text style={styles.chatButtonText}>Start Job</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : jobStatus === 'in-progress' ? (
+                        <>
+                            <View style={{ padding: 12, backgroundColor: '#EFF6FF', borderRadius: 8, marginBottom: 8, alignItems: 'center' }}>
+                                <Text style={{ color: '#2563EB', fontWeight: 'bold' }}>Job is currently in progress</Text>
+                            </View>
+                            <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#2563EB' }]} onPress={() => setShowInvoiceModal(true)}>
+                                <MaterialIcons name="check-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+                                <Text style={styles.chatButtonText}>Complete Job</Text>
+                            </TouchableOpacity>
+                        </>
+                    ) : (
+                        <View style={{ padding: 16, backgroundColor: '#ECFDF5', borderRadius: 8, alignItems: 'center' }}>
+                            <MaterialIcons name="check-circle" size={28} color="#059669" style={{ marginBottom: 4 }} />
+                            <Text style={{ color: '#059669', fontWeight: 'bold' }}>Job Completed & Billed</Text>
+                        </View>
+                    )}
                 </View>
+
+                {/* ── Invoice Modal ── */}
+                {showInvoiceModal && (
+                    <View style={StyleSheet.absoluteFill}>
+                        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+                            <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Finalize Job</Text>
+                                    <TouchableOpacity onPress={() => setShowInvoiceModal(false)}>
+                                        <MaterialIcons name="close" size={24} color="#6B7280" />
+                                    </TouchableOpacity>
+                                </View>
+
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 }}>Material Costs (Rs)</Text>
+                                <TextInput
+                                    style={{ borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 20 }}
+                                    placeholder="e.g. 1500 (Optional)"
+                                    keyboardType="numeric"
+                                    value={materialCost}
+                                    onChangeText={setMaterialCost}
+                                />
+
+                                <View style={{ backgroundColor: '#F3F4F6', padding: 16, borderRadius: 8, marginBottom: 24 }}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                                        <Text style={{ color: '#4B5563' }}>Base Fee</Text>
+                                        <Text style={{ fontWeight: '500' }}>{formatCurrency(baseFee)}</Text>
+                                    </View>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                        <Text style={{ color: '#4B5563' }}>Extra Materials</Text>
+                                        <Text style={{ fontWeight: '500' }}>Rs {Number(materialCost) ? Number(materialCost).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'}</Text>
+                                    </View>
+                                    <View style={{ height: 1, backgroundColor: '#D1D5DB', marginBottom: 12 }} />
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111827' }}>Total Invoice</Text>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#2563EB' }}>{formatCurrency(baseFee + (Number(materialCost) || 0))}</Text>
+                                    </View>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={{ backgroundColor: '#2563EB', padding: 16, borderRadius: 8, alignItems: 'center' }}
+                                    onPress={async () => {
+                                        const total = baseFee + (Number(materialCost) || 0);
+                                        await supabase.from('invoices').insert({
+                                            customer_name: customerName,
+                                            service_type: serviceType,
+                                            base_fee: baseFee,
+                                            material_cost: Number(materialCost) || 0,
+                                            total_amount: total,
+                                            status: 'pending'
+                                        });
+                                        setShowInvoiceModal(false);
+                                        setJobStatus('completed');
+                                    }}
+                                >
+                                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Send Bill to Customer</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                )}
             </SafeAreaView>
         </View>
     );

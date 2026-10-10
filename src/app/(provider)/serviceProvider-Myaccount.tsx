@@ -15,7 +15,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getRoleNameString, settingsStore, useCurrency, useSettings } from './settingsStore';
+import { getRoleNameString, settingsStore, useSettings } from './settingsStore';
 
 // ─── Hero Section Component ───
 function ProfileHeroSection({ profileImage, pickImage, onBack, name, roleString }: { profileImage: string | null, pickImage: () => void, onBack: () => void, name: string, roleString: string }) {
@@ -57,11 +57,9 @@ function ProfileHeroSection({ profileImage, pickImage, onBack, name, roleString 
 
 // ─── Main Screen ───
 export default function ProviderProfileSetupScreen() {
-    const { currencySymbol } = useCurrency();
-    const { serviceCategory } = useSettings();
+    const { serviceCategory, serviceArea, providerName: name, baseFee } = useSettings();
     const router = useRouter();
     const [profileImage, setProfileImage] = useState<string | null>(null);
-    const [name, setName] = useState('Judith Glavour');
 
     const [countryCode, setCountryCode] = useState('+94');
     const [countryFlag, setCountryFlag] = useState('🇱🇰');
@@ -70,7 +68,7 @@ export default function ProviderProfileSetupScreen() {
     const [profileCountryFlag, setProfileCountryFlag] = useState('🇱🇰');
 
     const [phone, setPhone] = useState('77 123 4567');
-    const [pickerType, setPickerType] = useState<'phone' | 'country' | null>(null);
+    const [pickerType, setPickerType] = useState<'phone' | 'country' | 'district' | null>(null);
     const [countrySearch, setCountrySearch] = useState('');
 
     const [email, setEmail] = useState('Judithglavour@gmail.com');
@@ -259,26 +257,32 @@ export default function ProviderProfileSetupScreen() {
                             <View style={[styles.inputBox, { flex: 1 }]}>
                                 <View style={styles.inputBoxHeader}>
                                     <MaterialIcons name="local-offer" size={16} color="#10B981" />
-                                    <Text style={styles.inputBoxTitle}>HOURLY RATE</Text>
+                                    <Text style={styles.inputBoxTitle}>BASE FEE</Text>
                                 </View>
                                 <View style={styles.inputRowAlt}>
                                     <Text style={styles.inputPrefix}>Rs</Text>
-                                    <TextInput style={styles.inputMainTextBig} keyboardType="numeric" placeholder="1,500" placeholderTextColor="#111827" />
+                                    <TextInput
+                                        style={styles.inputMainTextBig}
+                                        keyboardType="numeric"
+                                        value={baseFee?.toString() || '2500'}
+                                        onChangeText={(v) => settingsStore.setBaseFee(Number(v) || 0)}
+                                        placeholderTextColor="#111827"
+                                    />
                                 </View>
                             </View>
                         </View>
 
                         {/* Service Area */}
 
-                        <View style={[styles.inputBox, { marginTop: 12 }]}>
+                        <TouchableOpacity style={[styles.inputBox, { marginTop: 12 }]} onPress={() => setPickerType('district')}>
                             <View style={styles.inputBoxHeaderRow}>
                                 <MaterialIcons name="location-on" size={14} color="#EF4444" />
                                 <Text style={styles.inputBoxTitle}>SERVICE AREA</Text>
                                 <View style={{ flex: 1 }} />
                                 <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
                             </View>
-                            <TextInput style={[styles.inputMainText, { marginTop: 4 }]} placeholder="Colombo & Western Province" placeholderTextColor="#111827" />
-                        </View>
+                            <Text style={[styles.inputMainText, { marginTop: 8 }]}>{serviceArea}</Text>
+                        </TouchableOpacity>
 
 
                         {/* About & Bio */}
@@ -316,41 +320,62 @@ export default function ProviderProfileSetupScreen() {
                         <Text style={styles.pickerTitle}>Select Country</Text>
                         <TextInput
                             style={styles.countrySearchInput}
-                            placeholder="Search country..."
+                            placeholder={pickerType === 'district' ? "Search district..." : "Search country..."}
                             placeholderTextColor="#9CA3AF"
                             value={countrySearch}
                             onChangeText={setCountrySearch}
                         />
                         <ScrollView showsVerticalScrollIndicator={false}>
-                            {[
-                                { name: 'Sri Lanka', code: '+94', flag: '🇱🇰' },
-                                { name: 'Nigeria', code: '+234', flag: '🇳🇬' },
-                                { name: 'United States', code: '+1', flag: '🇺🇸' },
-                                { name: 'United Kingdom', code: '+44', flag: '🇬🇧' },
-                                { name: 'India', code: '+91', flag: '🇮🇳' },
-                                { name: 'Australia', code: '+61', flag: '🇦🇺' },
-                            ].filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase())).map((item) => (
-                                <TouchableOpacity
-                                    key={item.code}
-                                    style={styles.pickerItem}
-                                    onPress={() => {
-                                        if (pickerType === 'phone') {
-                                            setCountryCode(item.code);
-                                            setCountryFlag(item.flag);
-                                        } else {
-                                            setProfileCountryName(item.name);
-                                            setProfileCountryFlag(item.flag);
-                                        }
-                                        setPickerType(null);
-                                        setCountrySearch('');
-                                    }}
-                                >
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={styles.pickerFlag}>{item.flag}</Text>
-                                        <Text style={styles.pickerName}>{item.name}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
+                            {pickerType === 'district' ? (
+                                ['Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya', 'Galle', 'Matara', 'Hambantota', 'Jaffna', 'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Batticaloa', 'Ampara', 'Trincomalee', 'Kurunegala', 'Puttalam', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Moneragala', 'Ratnapura', 'Kegalle']
+                                    .filter(d => d.toLowerCase().includes(countrySearch.toLowerCase()))
+                                    .map((district) => (
+                                        <TouchableOpacity
+                                            key={district}
+                                            style={styles.pickerItem}
+                                            onPress={() => {
+                                                settingsStore.setServiceArea(district);
+                                                setPickerType(null);
+                                                setCountrySearch('');
+                                            }}
+                                        >
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <MaterialIcons name="map" size={22} color="#9CA3AF" style={{ marginRight: 12 }} />
+                                                <Text style={styles.pickerName}>{district}</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    ))
+                            ) : (
+                                [
+                                    { name: 'Sri Lanka', code: '+94', flag: '🇱🇰' },
+                                    { name: 'Nigeria', code: '+234', flag: '🇳🇬' },
+                                    { name: 'United States', code: '+1', flag: '🇺🇸' },
+                                    { name: 'United Kingdom', code: '+44', flag: '🇬🇧' },
+                                    { name: 'India', code: '+91', flag: '🇮🇳' },
+                                    { name: 'Australia', code: '+61', flag: '🇦🇺' },
+                                ].filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase())).map((item) => (
+                                    <TouchableOpacity
+                                        key={item.code}
+                                        style={styles.pickerItem}
+                                        onPress={() => {
+                                            if (pickerType === 'phone') {
+                                                setCountryCode(item.code);
+                                                setCountryFlag(item.flag);
+                                            } else {
+                                                setProfileCountryName(item.name);
+                                                setProfileCountryFlag(item.flag);
+                                            }
+                                            setPickerType(null);
+                                            setCountrySearch('');
+                                        }}
+                                    >
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={styles.pickerFlag}>{item.flag}</Text>
+                                            <Text style={styles.pickerName}>{item.name}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))
+                            )}
                         </ScrollView>
                         <TouchableOpacity style={styles.pickerCloseBtn} onPress={() => { setPickerType(null); setCountrySearch(''); }}>
                             <Text style={styles.pickerCloseText}>Cancel</Text>
@@ -407,7 +432,7 @@ export default function ProviderProfileSetupScreen() {
                                 style={[styles.editModalSaveBtn, editField.key === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tempValue) && { backgroundColor: '#93C5FD' }]}
                                 disabled={editField.key === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tempValue)}
                                 onPress={() => {
-                                    if (editField.key === 'name') setName(tempValue);
+                                    if (editField.key === 'name') settingsStore.setProviderName(tempValue);
                                     if (editField.key === 'phone') setPhone(tempValue);
                                     if (editField.key === 'email') setEmail(tempValue);
                                     setEditField(null);
