@@ -15,34 +15,41 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCurrency } from './settingsStore';
+import { getRoleNameString, settingsStore, useCurrency, useSettings } from './settingsStore';
 
 // ─── Hero Section Component ───
-function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage: string | null, pickImage: () => void, onBack: () => void }) {
+function ProfileHeroSection({ profileImage, pickImage, onBack, name, roleString }: { profileImage: string | null, pickImage: () => void, onBack: () => void, name: string, roleString: string }) {
     return (
-        <View style={styles.blueHeaderSection}>
-            <SafeAreaView edges={['top']} style={{ flex: 0 }} />
-            <View style={styles.headerTop}>
-                <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
-                    <MaterialIcons name="chevron-left" size={26} color="#FFFFFF" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitleBlue}>My Account</Text>
-                <View style={{ width: 40 }} />
+        <View style={styles.heroWrapper}>
+            <View style={styles.blueHeaderSection}>
+                <SafeAreaView edges={['top']} style={{ flex: 0 }} />
+                <View style={styles.headerTop}>
+                    <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+                        <MaterialIcons name="chevron-left" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitleBlue}>My Account</Text>
+                    <View style={{ width: 44 }} />
+                </View>
             </View>
 
-            <View style={styles.uploadContainer}>
-                <TouchableOpacity onPress={pickImage} style={{ position: 'relative' }} activeOpacity={0.85}>
+            <View style={styles.avatarSection}>
+                <TouchableOpacity onPress={pickImage} style={styles.uploadContainer}>
                     <View style={styles.uploadCircle}>
                         {profileImage ? (
                             <Image source={{ uri: profileImage }} style={styles.profileImage} />
                         ) : (
-                            <MaterialIcons name="person" size={54} color="#2563EB" />
+                            <MaterialIcons name="person-outline" size={48} color="#3B82F6" />
                         )}
                     </View>
                     <View style={styles.editIconBadge}>
-                        <MaterialIcons name="edit" size={13} color="#FFFFFF" />
+                        <MaterialIcons name="edit" size={14} color="#fff" />
                     </View>
                 </TouchableOpacity>
+
+                <Text style={styles.heroName}>{name}</Text>
+                <View style={styles.heroPill}>
+                    <Text style={styles.heroPillText}>{roleString} · 5 years experience</Text>
+                </View>
             </View>
         </View>
     );
@@ -51,8 +58,8 @@ function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage:
 // ─── Main Screen ───
 export default function ProviderProfileSetupScreen() {
     const { currencySymbol } = useCurrency();
+    const { serviceCategory } = useSettings();
     const router = useRouter();
-    const [serviceType, setServiceType] = useState('Plumbing');
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [name, setName] = useState('Judith Glavour');
 
@@ -130,6 +137,8 @@ export default function ProviderProfileSetupScreen() {
                 profileImage={profileImage}
                 pickImage={handleEditProfilePic}
                 onBack={() => router.back()}
+                name={name}
+                roleString={getRoleNameString(serviceCategory)}
             />
 
             <KeyboardAvoidingView
@@ -138,32 +147,21 @@ export default function ProviderProfileSetupScreen() {
             >
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                    {/* ── User Overview & Subtitle Pill ── */}
-                    <View style={styles.profileOverview}>
-                        <Text style={styles.profileDisplayName}>{name}</Text>
-                        <View style={styles.pillBadge}>
-                            <Text style={styles.pillBadgeText}>
-                                {serviceType} · 5 yrs experience
-                            </Text>
-                        </View>
-                    </View>
-
-                    <Text style={[styles.sectionSimpleTitle, { marginTop: 16 }]}>Personal info</Text>
+                    <Text style={styles.sectionSimpleTitle}>Personal info</Text>
                     {/* ── Personal Info Card ── */}
                     <View style={styles.proProfileCard}>
-
                         <TouchableOpacity
                             style={styles.personalInfoField}
                             onPress={() => { setEditField({ key: 'name', label: 'Your name', value: name }); setTempValue(name); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="person" size={20} color="#2563EB" />
+                                <MaterialIcons name="person-outline" size={20} color="#3B82F6" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>YOUR NAME</Text>
                                 <Text style={styles.fieldValueText}>{name}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                            <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -171,16 +169,16 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => { setEditField({ key: 'phone', label: 'Phone Number', value: phone }); setTempValue(phone); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="phone" size={20} color="#2563EB" />
+                                <MaterialIcons name="phone" size={20} color="#3B82F6" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>PHONE NUMBER</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={[styles.fieldValueText, { color: '#4B5563', marginRight: 6 }]}>{countryFlag} {countryCode}</Text>
+                                    <Text style={[styles.fieldValueText, { color: '#111827', marginRight: 4 }]}>{countryFlag} {countryCode}</Text>
                                     <Text style={styles.fieldValueText}>{phone}</Text>
                                 </View>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                            <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -188,21 +186,21 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => { setEditField({ key: 'email', label: 'Email Address', value: email }); setTempValue(email); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="mail" size={20} color="#2563EB" />
+                                <MaterialIcons name="mail-outline" size={20} color="#3B82F6" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>EMAIL ADDRESS</Text>
                                 <Text style={styles.fieldValueText}>{email}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                            <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.personalInfoField}
+                            style={[styles.personalInfoField, { borderBottomWidth: 0, paddingBottom: 0 }]}
                             onPress={() => setPickerType('country')}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="language" size={20} color="#2563EB" />
+                                <MaterialIcons name="language" size={20} color="#3B82F6" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>COUNTRY</Text>
@@ -211,28 +209,31 @@ export default function ProviderProfileSetupScreen() {
                                     <Text style={styles.fieldValueText}>{profileCountryName}</Text>
                                 </View>
                             </View>
-                            <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
+                            <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
                         </TouchableOpacity>
                     </View>
 
-                    {/* ── Form Inputs (Professional Details) ── */}
                     {/* ── Professional Info Label ── */}
-                    <Text style={[styles.sectionSimpleTitle, { marginTop: 16 }]}>Professional Info</Text>
+                    <Text style={[styles.sectionSimpleTitle, { marginTop: 24 }]}>Professional info</Text>
 
                     {/* ── Professional Profile Card ── */}
                     <View style={styles.proProfileCard}>
                         {/* Service Category */}
                         <View style={styles.fieldSection}>
-                            <Text style={styles.fieldLabel}>Service Category / Types</Text>
+                            <View style={styles.serviceHeaderRow}>
+                                <Text style={styles.fieldLabel}>Service categories</Text>
+                                <Text style={styles.serviceSubLabel}>Select all that apply</Text>
+                            </View>
                             <View style={styles.pillRow}>
                                 {['Plumbing', 'Electrical', 'Cleaning'].map((type) => {
-                                    const isActive = serviceType === type;
+                                    const isActive = serviceCategory === type;
                                     return (
                                         <TouchableOpacity
                                             key={type}
                                             style={[styles.pill, isActive && styles.pillActive]}
-                                            onPress={() => setServiceType(type)}
+                                            onPress={() => settingsStore.setServiceCategory(type)}
                                         >
+                                            {isActive && <MaterialIcons name="check" size={16} color="#fff" style={{ marginRight: 4 }} />}
                                             <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
                                                 {type}
                                             </Text>
@@ -244,73 +245,69 @@ export default function ProviderProfileSetupScreen() {
 
                         {/* Experience & Hourly Rate Row */}
                         <View style={styles.twoColRow}>
-                            <View style={[styles.fieldSection, { flex: 1, marginRight: 10 }]}>
-                                <View style={styles.inputBox}>
-                                    <View style={styles.inputBoxHeader}>
-                                        <MaterialIcons name="military-tech" size={16} color="#F59E0B" />
-                                        <Text style={styles.inputBoxTitle}>EXPERIENCE</Text>
-                                    </View>
-                                    <View style={styles.inputRow}>
-                                        <TextInput style={styles.inputMainText} keyboardType="numeric" placeholder="5" placeholderTextColor="#111827" />
-                                        <Text style={styles.inputSuffix}>Yrs</Text>
-                                    </View>
+                            <View style={[styles.inputBox, { flex: 1, marginRight: 12 }]}>
+                                <View style={styles.inputBoxHeader}>
+                                    <MaterialIcons name="workspace-premium" size={16} color="#F59E0B" />
+                                    <Text style={styles.inputBoxTitle}>EXPERIENCE</Text>
+                                </View>
+                                <View style={styles.inputRowAlt}>
+                                    <TextInput style={styles.inputMainTextBig} keyboardType="numeric" placeholder="5" placeholderTextColor="#111827" />
+                                    <Text style={styles.inputSuffix}>years</Text>
                                 </View>
                             </View>
 
-                            <View style={[styles.fieldSection, { flex: 1 }]}>
-                                <View style={styles.inputBox}>
-                                    <View style={styles.inputBoxHeader}>
-                                        <MaterialIcons name="local-offer" size={16} color="#10B981" />
-                                        <Text style={styles.inputBoxTitle}>HOURLY RATE</Text>
-                                    </View>
-                                    <View style={styles.inputRow}>
-                                        <Text style={styles.inputPrefix}>{currencySymbol.trim()}</Text>
-                                        <TextInput style={styles.inputMainText} keyboardType="numeric" placeholder="1,500" placeholderTextColor="#111827" />
-                                    </View>
+                            <View style={[styles.inputBox, { flex: 1 }]}>
+                                <View style={styles.inputBoxHeader}>
+                                    <MaterialIcons name="local-offer" size={16} color="#10B981" />
+                                    <Text style={styles.inputBoxTitle}>HOURLY RATE</Text>
+                                </View>
+                                <View style={styles.inputRowAlt}>
+                                    <Text style={styles.inputPrefix}>Rs</Text>
+                                    <TextInput style={styles.inputMainTextBig} keyboardType="numeric" placeholder="1,500" placeholderTextColor="#111827" />
                                 </View>
                             </View>
                         </View>
 
                         {/* Service Area */}
-                        <View style={styles.fieldSection}>
-                            <View style={styles.inputBox}>
-                                <View style={styles.inputBoxHeader}>
-                                    <MaterialIcons name="location-pin" size={16} color="#EF4444" />
-                                    <Text style={styles.inputBoxTitle}>SERVICE AREA / COVERAGE</Text>
-                                </View>
-                                <TextInput style={styles.inputMainText} placeholder="Colombo & Western Province" placeholderTextColor="#111827" />
+
+                        <View style={[styles.inputBox, { marginTop: 12 }]}>
+                            <View style={styles.inputBoxHeaderRow}>
+                                <MaterialIcons name="location-on" size={14} color="#EF4444" />
+                                <Text style={styles.inputBoxTitle}>SERVICE AREA</Text>
+                                <View style={{ flex: 1 }} />
+                                <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
                             </View>
+                            <TextInput style={[styles.inputMainText, { marginTop: 4 }]} placeholder="Colombo & Western Province" placeholderTextColor="#111827" />
                         </View>
 
+
                         {/* About & Bio */}
-                        <View style={styles.fieldSection}>
-                            <View style={styles.inputBox}>
-                                <View style={[styles.inputBoxHeader, { justifyContent: 'space-between' }]}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <MaterialIcons name="notes" size={16} color="#3B82F6" />
-                                        <Text style={styles.inputBoxTitle}>ABOUT & BIO</Text>
-                                    </View>
-                                    <Text style={styles.charCount}>68/200</Text>
+                        <View style={[styles.inputBox, { marginTop: 12, marginBottom: 0 }]}>
+                            <View style={[styles.inputBoxHeaderRow, { justifyContent: 'space-between' }]}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <MaterialIcons name="sort" size={16} color="#4B5563" />
+                                    <Text style={styles.inputBoxTitle}>ABOUT & BIO</Text>
                                 </View>
-                                <TextInput
-                                    style={[styles.inputMainText, { minHeight: 60, textAlignVertical: 'top' }]}
-                                    multiline
-                                    placeholder="Experienced maintenance technician with 5+ years of quality plumbing service."
-                                    placeholderTextColor="#111827"
-                                />
+                                <Text style={styles.charCount}>74/200</Text>
                             </View>
+                            <TextInput
+                                style={[styles.inputMainText, { minHeight: 60, textAlignVertical: 'top', marginTop: 4, color: '#374151', lineHeight: 22, fontWeight: '500' }]}
+                                multiline
+                                placeholder="Experienced plumber for home repairs and leak fixes, 5 years in the field."
+                                placeholderTextColor="#374151"
+                            />
                         </View>
                     </View>
 
-
-                    {/* ── Save Button ── */}
-                    <TouchableOpacity style={styles.saveBtn}>
-                        <MaterialIcons name="save" size={20} color="#fff" />
-                        <Text style={styles.saveBtnText}>Save Changes</Text>
-                    </TouchableOpacity>
-
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* ── Fixed Bottom Save Button ── */}
+            <View style={styles.fixedBottomContainer}>
+                <TouchableOpacity style={styles.saveBtn}>
+                    <Text style={styles.saveBtnText}>Save changes</Text>
+                </TouchableOpacity>
+            </View>
 
             {/* ── Country Picker Modal ── */}
             {pickerType && (
@@ -407,7 +404,8 @@ export default function ProviderProfileSetupScreen() {
                                 <Text style={styles.editModalCancelText}>Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={styles.editModalSaveBtn}
+                                style={[styles.editModalSaveBtn, editField.key === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tempValue) && { backgroundColor: '#93C5FD' }]}
+                                disabled={editField.key === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tempValue)}
                                 onPress={() => {
                                     if (editField.key === 'name') setName(tempValue);
                                     if (editField.key === 'phone') setPhone(tempValue);
@@ -429,20 +427,23 @@ export default function ProviderProfileSetupScreen() {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#F5F7FA', // Soft background to match typical lists
+        backgroundColor: '#F3F4F6', // Lighter grey background to match Figma
     },
     scrollContent: {
         padding: 20,
-        paddingBottom: 40,
-        paddingTop: 55, // Extra space for overlapping hero
+        paddingBottom: 20,
     },
 
     // Hero Section Styles
+    heroWrapper: {
+        backgroundColor: '#F3F4F6',
+        paddingBottom: 24,
+    },
     blueHeaderSection: {
-        backgroundColor: '#0F172A', // Dark navy matching Screenshot 2
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
-        paddingBottom: 55,
+        backgroundColor: '#0F172A', // Dark Navy
+        borderBottomLeftRadius: 36,
+        borderBottomRightRadius: 36,
+        paddingBottom: 65,
         zIndex: 10,
     },
     backButton: {
@@ -457,29 +458,40 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
+        paddingHorizontal: 12,
         paddingVertical: 14,
     },
+    backBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#1E293B',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     headerTitleBlue: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '800',
         color: '#fff',
     },
-    uploadContainer: {
-        position: 'absolute',
-        bottom: -46,
-        alignSelf: 'center',
+    avatarSection: {
+        alignItems: 'center',
+        marginTop: -55,
         zIndex: 20,
     },
+    uploadContainer: {
+        position: 'relative',
+        marginBottom: 12,
+    },
     uploadCircle: {
-        width: 94,
-        height: 94,
-        borderRadius: 47,
-        backgroundColor: '#EFF6FF',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#EEF2FF',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 4,
-        borderColor: '#fff',
+        borderColor: '#F3F4F6',
         overflow: 'hidden',
         shadowColor: '#0F172A',
         shadowOffset: { width: 0, height: 4 },
@@ -495,7 +507,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 2,
         right: 2,
-        backgroundColor: '#2563EB',
+        backgroundColor: '#3B82F6',
         width: 28,
         height: 28,
         borderRadius: 14,
@@ -504,64 +516,51 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: '#FFFFFF',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
-        shadowRadius: 2,
+        shadowRadius: 4,
         elevation: 3,
+        borderWidth: 2,
+        borderColor: '#F3F4F6',
     },
-
-    // User Overview Under Avatar
-    profileOverview: {
-        alignItems: 'center',
-        marginTop: 52,
-        marginBottom: 10,
-    },
-    profileDisplayName: {
+    heroName: {
         fontSize: 22,
         fontWeight: '800',
         color: '#0F172A',
-        letterSpacing: 0.2,
+        marginBottom: 6,
     },
-    pillBadge: {
-        backgroundColor: '#EFF6FF',
-        paddingHorizontal: 14,
-        paddingVertical: 5,
+    heroPill: {
+        backgroundColor: '#EEF2FF',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 20,
-        marginTop: 6,
     },
-    pillBadgeText: {
-        fontSize: 12,
-        fontWeight: '700',
+    heroPillText: {
         color: '#2563EB',
+        fontSize: 13,
+        fontWeight: '800',
     },
 
     // Info Labels (Text dividers)
     sectionSimpleTitle: {
-        fontSize: 17,
+        fontSize: 18,
         fontWeight: '800',
         color: '#0F172A',
-        marginBottom: 10,
-        marginLeft: 4,
+        marginBottom: 12,
     },
 
-    basicBadgeText: {
-        color: '#9CA3AF',
-        fontSize: 14,
-        fontWeight: '600',
-    },
     personalInfoField: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        borderRadius: 16,
-        padding: 12,
-        marginBottom: 12,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
     },
     fieldIconCircle: {
         width: 40,
         height: 40,
-        borderRadius: 12,
-        backgroundColor: '#EFF6FF',
+        borderRadius: 20,
+        backgroundColor: '#EEF2FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -572,15 +571,15 @@ const styles = StyleSheet.create({
     },
     fieldLabelUpper: {
         fontSize: 11,
-        fontWeight: '700',
-        color: '#9CA3AF',
-        marginBottom: 4,
+        fontWeight: '800',
+        color: '#64748B',
+        marginBottom: 2,
         letterSpacing: 0.5,
     },
     fieldValueText: {
         fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
+        fontWeight: '800',
+        color: '#0F172A',
         padding: 0,
         margin: 0,
     },
@@ -606,6 +605,15 @@ const styles = StyleSheet.create({
         color: '#111827',
         textAlign: 'center',
     },
+    countrySearchInput: {
+        backgroundColor: '#F3F4F6',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        fontSize: 15,
+        marginBottom: 12,
+        color: '#111827',
+    },
     pickerItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -621,11 +629,6 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         color: '#374151',
-    },
-    pickerCode: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
     },
     pickerCloseBtn: {
         marginTop: 16,
@@ -643,54 +646,33 @@ const styles = StyleSheet.create({
     // Professional Card
     proProfileCard: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 20,
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 24,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
         elevation: 1,
-    },
-    proHeaderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    proIconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
-        backgroundColor: '#EFF6FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    proTitle: {
-        fontSize: 15,
-        fontWeight: '800',
-        color: '#111827',
-        flex: 1,
-    },
-    activeBadge: {
-        backgroundColor: '#ECFDF5',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    activeBadgeText: {
-        color: '#10B981',
-        fontSize: 12,
-        fontWeight: '700',
     },
     fieldSection: {
         marginBottom: 16,
     },
+    serviceHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
     fieldLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#374151',
-        marginBottom: 8,
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#0F172A',
+    },
+    serviceSubLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#64748B',
     },
     pillRow: {
         flexDirection: 'row',
@@ -700,16 +682,18 @@ const styles = StyleSheet.create({
     pill: {
         backgroundColor: '#F3F4F6',
         paddingHorizontal: 14,
-        paddingVertical: 8,
+        paddingVertical: 10,
         borderRadius: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     pillActive: {
         backgroundColor: '#2563EB',
     },
     pillText: {
-        color: '#4B5563',
+        color: '#1E293B',
         fontSize: 14,
-        fontWeight: '600',
+        fontWeight: '700',
     },
     pillTextActive: {
         color: '#fff',
@@ -720,9 +704,9 @@ const styles = StyleSheet.create({
     },
     inputBox: {
         borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 12,
-        padding: 12,
+        borderColor: '#E2E8F0',
+        borderRadius: 16,
+        padding: 16,
         backgroundColor: '#fff',
     },
     inputBoxHeader: {
@@ -730,45 +714,67 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
+    inputBoxHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     inputBoxTitle: {
         fontSize: 11,
-        fontWeight: '700',
-        color: '#6B7280',
+        fontWeight: '800',
+        color: '#64748B',
         marginLeft: 6,
         letterSpacing: 0.5,
     },
     charCount: {
-        fontSize: 11,
-        color: '#9CA3AF',
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#64748B',
     },
-    inputRow: {
+    inputRowAlt: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'baseline',
+        marginTop: 4,
+    },
+    inputMainTextBig: {
+        fontSize: 24,
+        fontWeight: '900',
+        color: '#0F172A',
+        padding: 0,
+        letterSpacing: -0.5,
     },
     inputMainText: {
         fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
+        fontWeight: '800',
+        color: '#0F172A',
         flex: 1,
         padding: 0,
     },
     inputSuffix: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '500',
-        marginLeft: 4,
+        fontSize: 15,
+        color: '#64748B',
+        fontWeight: '600',
+        marginLeft: 6,
     },
     inputPrefix: {
-        fontSize: 14,
-        color: '#6B7280',
+        fontSize: 15,
+        color: '#64748B',
         fontWeight: '600',
         marginRight: 6,
+    },
+
+    // Fixed Bottom
+    fixedBottomContainer: {
+        backgroundColor: '#fff',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
     },
     saveBtn: {
         backgroundColor: '#2563EB',
         borderRadius: 16,
         paddingVertical: 18,
-        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#2563EB',
@@ -776,13 +782,11 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 4,
-        marginBottom: 10,
     },
     saveBtnText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: '700',
-        marginLeft: 8,
+        fontWeight: '800',
     },
 
     // Edit Modal Styles
@@ -847,23 +851,13 @@ const styles = StyleSheet.create({
     },
     editModalSaveBtn: {
         backgroundColor: '#2563EB',
-        paddingHorizontal: 28,
-        paddingVertical: 12,
-        borderRadius: 24,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 8,
     },
     editModalSaveText: {
-        fontSize: 15,
-        fontWeight: '700',
         color: '#fff',
+        fontWeight: '700',
+        fontSize: 16,
     },
-    countrySearchInput: {
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: '#111827',
-        marginBottom: 12,
-        marginHorizontal: 16,
-    }
 });

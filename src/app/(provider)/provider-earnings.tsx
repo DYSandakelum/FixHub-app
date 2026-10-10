@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
     Dimensions,
     Modal,
+    Platform,
     ScrollView,
     StyleSheet,
     Text,
@@ -133,30 +134,33 @@ export default function ProviderEarningsScreen() {
         return v * scale;
     });
 
+    const maxDataValue = Math.max(...dynamicChartData);
+
     const totalEarningsVal = filteredHistory.reduce((acc, curr) => acc + curr.amount, 0);
     const totalEarningsStr = totalEarningsVal > 0 ? formatCurrency(totalEarningsVal.toLocaleString()) : formatCurrency('42,500');
 
     return (
-        <SafeAreaView style={styles.screen}>
-            {/* ── Header ── */}
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <MaterialIcons name="chevron-left" size={28} color="#2563EB" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Earnings</Text>
-                <TouchableOpacity style={styles.moreButton}>
-                    <MaterialIcons name="more-horiz" size={24} color="#9CA3AF" />
-                </TouchableOpacity>
+        <View style={styles.screen}>
+            {/* ── Hero Background Header ── */}
+            <View style={styles.heroBackground}>
+                <SafeAreaView edges={['top']} style={{ flex: 0 }} />
+                <View style={styles.headerTop}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <MaterialIcons name="chevron-left" size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Earnings</Text>
+                    <View style={{ width: 44, height: 44 }} />
+                </View>
             </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ marginTop: -65, zIndex: 10 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* ── Summary Card ── */}
-                <View style={styles.summaryCard}>
+                <View style={[styles.summaryCard, { marginTop: 0 }]}>
                     <View style={styles.summaryHeader}>
                         <Text style={styles.summaryLabel}>Total Earnings</Text>
                         <TouchableOpacity style={styles.filterButton} onPress={openCalendar}>
                             <MaterialIcons name="calendar-today" size={14} color="#2563EB" />
-                            <Text style={styles.summaryPeriod}>{formatDate(startDate)} - {formatDate(endDate)}</Text>
+                            <Text style={styles.summaryPeriod}>Sep 9, 2026 - Oct 9, 2026</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -218,7 +222,14 @@ export default function ProviderEarningsScreen() {
                         <BarChart
                             data={{
                                 labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                                datasets: [{ data: dynamicChartData }]
+                                datasets: [{
+                                    data: dynamicChartData,
+                                    colors: dynamicChartData.map(val =>
+                                        val === maxDataValue
+                                            ? () => `#2563EB`
+                                            : () => `#EEF2FF`
+                                    )
+                                }]
                             }}
                             width={Dimensions.get("window").width - 85}
                             height={180}
@@ -229,11 +240,13 @@ export default function ProviderEarningsScreen() {
                                 backgroundGradientFrom: "#ffffff",
                                 backgroundGradientTo: "#ffffff",
                                 decimalPlaces: 0,
-                                color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+                                color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`, // Fallback
                                 labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
                                 style: { borderRadius: 16 },
                                 barPercentage: 0.6,
                             }}
+                            withCustomBarColorFromData={true}
+                            flatColor={true}
                             style={{ borderRadius: 16, paddingRight: 0 }}
                             fromZero={true}
                             withHorizontalLabels={true}
@@ -243,8 +256,12 @@ export default function ProviderEarningsScreen() {
                     </View>
 
                     <View style={styles.statsRow}>
-                        <Text style={styles.statText}>12 Jobs Completed</Text>
-                        <Text style={styles.statText}>Avg: {formatCurrency('3,542')}</Text>
+                        <View style={styles.statPillGreen}>
+                            <Text style={styles.statPillTextGreen}>12 Jobs Completed</Text>
+                        </View>
+                        <View style={styles.statPillGrey}>
+                            <Text style={styles.statPillTextGrey}>Avg: {formatCurrency('3,542')}</Text>
+                        </View>
                     </View>
 
                     <View style={styles.divider} />
@@ -258,8 +275,9 @@ export default function ProviderEarningsScreen() {
                 {/* ── Payment History ── */}
                 <View style={styles.historyHeader}>
                     <Text style={styles.historyTitle}>Payment History</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Text style={styles.viewAllText}>View All</Text>
+                        <MaterialIcons name="chevron-right" size={18} color="#2563EB" />
                     </TouchableOpacity>
                 </View>
 
@@ -299,44 +317,56 @@ export default function ProviderEarningsScreen() {
                     <MaterialIcons name="account-balance-wallet" size={24} color="#2563EB" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabelActive}>Earnings</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-profile-setup')}>
+                <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/providerSetup-profile')}>
                     <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Profile</Text>
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FAFAFA',
+        backgroundColor: '#F3F4F6',
     },
-    // Header
-    header: {
+    // Header Hero
+    heroBackground: {
+        backgroundColor: '#0F172A',
+        height: 160,
+        borderBottomLeftRadius: 36,
+        borderBottomRightRadius: 36,
+    },
+    headerTop: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 14,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        paddingTop: Platform.OS === 'ios' ? 0 : 20,
     },
     backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#1E293B',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    backIcon: { fontSize: 24, color: '#2563EB', lineHeight: 28 },
-    headerTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
-    moreButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-    moreIcon: { fontSize: 20, color: '#9CA3AF', fontWeight: '700' },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#fff',
+    },
+    moreButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#1E293B',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 
     scrollContent: {
         padding: 20,
@@ -344,17 +374,16 @@ const styles = StyleSheet.create({
 
     // Summary Card
     summaryCard: {
+        marginTop: -65,
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-        marginBottom: 24,
+        borderRadius: 24,
+        padding: 24,
+        marginBottom: 32,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-        elevation: 1,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 2,
     },
     summaryHeader: {
         flexDirection: 'row',
@@ -362,25 +391,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    summaryLabel: { fontSize: 13, fontWeight: '700', color: '#6B7280' },
+    summaryLabel: { fontSize: 14, fontWeight: '800', color: '#475569' },
     filterButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#EFF6FF',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        backgroundColor: '#EEF2FF',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
         borderRadius: 20,
         gap: 6,
     },
-    filterIcon: { fontSize: 12 },
-    summaryPeriod: { fontSize: 13, fontWeight: '600', color: '#2563EB' },
-    totalEarnings: { fontSize: 32, fontWeight: '800', color: '#111827', marginBottom: 12 },
-    statsRow: { flexDirection: 'row', gap: 16, marginBottom: 16 },
-    statText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
-    divider: { height: 1, backgroundColor: '#F3F4F6', marginBottom: 16 },
+    summaryPeriod: { fontSize: 12, fontWeight: '800', color: '#2563EB' },
+    totalEarnings: { fontSize: 36, fontWeight: '800', color: '#0F172A', marginBottom: 16 },
+    statsRow: { flexDirection: 'row', gap: 10, marginBottom: 20, marginTop: 10 },
+    statPillGreen: { backgroundColor: '#D1FAE5', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16 },
+    statPillTextGreen: { color: '#065922', fontSize: 12, fontWeight: '800' },
+    statPillGrey: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16 },
+    statPillTextGrey: { color: '#475569', fontSize: 12, fontWeight: '800' },
+    divider: { height: 1, backgroundColor: '#E2E8F0', marginBottom: 20 },
     pendingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    pendingLabel: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
-    pendingAmount: { fontSize: 15, fontWeight: '800', color: '#2563EB' },
+    pendingLabel: { fontSize: 16, fontWeight: '800', color: '#475569' },
+    pendingAmount: { fontSize: 24, fontWeight: '800', color: '#2563EB' },
 
     // History List
     historyHeader: {
@@ -389,19 +420,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
-    historyTitle: { fontSize: 16, fontWeight: '800', color: '#111827' },
-    viewAllText: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
+    historyTitle: { fontSize: 20, fontWeight: '800', color: '#0F172A' },
+    viewAllText: { fontSize: 14, fontWeight: '800', color: '#2563EB' },
     historyList: {
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 24,
         paddingHorizontal: 20,
         paddingVertical: 8,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.03,
-        shadowRadius: 4,
+        shadowRadius: 10,
         elevation: 1,
     },
     historyItem: {

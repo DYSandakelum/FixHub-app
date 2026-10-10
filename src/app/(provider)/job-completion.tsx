@@ -90,7 +90,7 @@ export default function JobCompletionScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => router.push('/(provider)/provider-profile-setup')}
+                    onPress={() => router.push('/(provider)/providerSetup-profile')}
                 >
                     <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
                     <Text style={styles.navLabel}>Profile</Text>
