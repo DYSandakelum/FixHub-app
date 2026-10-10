@@ -1,13 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Href, useRouter } from 'expo-router';
+import { CustomerRegisterScreen } from '@/components/auth/customer-register-screen';
 
-export default function RegisterCustomerScreen() {
-    return (
-        <View style={styles.container}>
-            <Text>Register Customer Screen - TODO</Text>
-        </View>
-    );
+export default function RegisterCustomerRoute() {
+  const router = useRouter();
+
+  return (
+    <CustomerRegisterScreen
+      onNavigateToLogin={() => router.push('/(auth)/login' as Href)}
+      onNavigateToProviderRegister={() => router.push('/(auth)/register-provider' as Href)}
+      onRegistrationSuccess={() => router.replace('/(customer)/home' as Href)}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});

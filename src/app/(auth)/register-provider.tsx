@@ -1,13 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Href, useRouter } from 'expo-router';
+import { ProviderRegisterScreen } from '@/components/auth/provider-register-screen';
 
-export default function RegisterProviderScreen() {
-    return (
-        <View style={styles.container}>
-            <Text>Register Provider Screen - TODO</Text>
-        </View>
-    );
+export default function RegisterProviderRoute() {
+  const router = useRouter();
+
+  return (
+    <ProviderRegisterScreen
+      onNavigateToLogin={() => router.push('/(auth)/login' as Href)}
+      onNavigateToCustomerRegister={() => router.push('/(auth)/register-customer' as Href)}
+      onRegistrationSuccess={() => router.replace('/(provider)/provider-dashboard' as Href)}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});

@@ -7,9 +7,12 @@ export const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 export const isSupabaseConfigured = () => {
   return (
-    supabaseUrl === 'https://ysandystpmnycxaobgpo.supabase.co' &&
+    Boolean(supabaseUrl) &&
+    supabaseUrl.startsWith('https://') &&
+    !supabaseUrl.includes('your-project-id') &&
     Boolean(supabaseAnonKey) &&
-    !supabaseAnonKey.includes('placeholder')
+    !supabaseAnonKey.includes('placeholder') &&
+    !supabaseAnonKey.includes('your-supabase-anon-key')
   );
 };
 
@@ -51,7 +54,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-export type UserRole = 'customer' | 'provider';
+export type UserRole = 'customer' | 'provider' | 'admin';
 
 export interface UserProfile {
   id: string;

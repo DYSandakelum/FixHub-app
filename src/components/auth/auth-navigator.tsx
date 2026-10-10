@@ -5,6 +5,7 @@ import { RegistrationScreen } from './registration-screen';
 import { CustomerRegisterScreen } from './customer-register-screen';
 import { ProviderRegisterScreen } from './provider-register-screen';
 import { useAuth } from '@/context/auth-context';
+import { UserRole } from '@/lib/supabase';
 
 export type AuthScreenType =
   | 'onboarding'
@@ -15,7 +16,7 @@ export type AuthScreenType =
 
 interface AuthNavigatorProps {
   initialScreen?: AuthScreenType;
-  onLoginSuccess?: (role: 'customer' | 'provider') => void;
+  onLoginSuccess?: (role: UserRole) => void;
 }
 
 export function AuthNavigator({

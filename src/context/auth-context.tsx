@@ -64,6 +64,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fetch or construct profile
   const fetchProfileForUser = useCallback(async (currentUser: User): Promise<UserProfile> => {
     try {
+      // 1. Try 'users' table (used by booking, customer profile, admin)
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      if (userData && !userError) {
+        return {
+          id: currentUser.id,
+          email: currentUser.email || userData.email || '',
+          full_name: userData.name || userData.full_name || '',
+          phone_number: userData.phone || userData.phone_number || '',
+          role: (userData.role as UserRole) || 'customer',
+          service_category: userData.service_category || null,
+        };
+      }
+
+      // 2. Try 'profiles' table (used by member1 auth schema)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -218,7 +237,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data.user) {
-          // Attempt profile persistence in database
+          // 1. Sync with 'users' table (required for booking and customer profiles)
+          try {
+            await supabase.from('users').upsert({
+              id: data.user.id,
+              email: cleanEmail,
+              name: fullName.trim(),
+              phone: phoneNumber.trim(),
+              role: 'customer',
+            });
+          } catch (usersErr) {
+            console.warn('Users table upsert note:', usersErr);
+          }
+
+          // 2. Sync with 'profiles' table (member1 auth schema)
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
@@ -280,7 +312,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data.user) {
-          // Attempt profile persistence in database
+          // 1. Sync with 'users' table
+          try {
+            await supabase.from('users').upsert({
+              id: data.user.id,
+              email: cleanEmail,
+              name: fullName.trim(),
+              phone: phoneNumber.trim(),
+              role: 'provider',
+            });
+          } catch (usersErr) {
+            console.warn('Users table upsert note:', usersErr);
+          }
+
+          // 2. Sync with 'profiles' table
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
@@ -293,6 +338,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
           } catch (dbErr) {
             console.warn('Provider profile DB upsert note:', dbErr);
+          }
+
+          // 3. Register in 'providers' table (required for search & admin verification)
+          try {
+            await supabase.from('providers').upsert({
+              id: data.user.id,
+              service_type: serviceCategory,
+              verified: false,
+            });
+          } catch (provErr) {
+            console.warn('Provider table upsert note:', provErr);
           }
 
           const providerProfile: UserProfile = {

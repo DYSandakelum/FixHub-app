@@ -15,11 +15,12 @@ import { AuthInput } from './auth-input';
 import { AuthButton } from './auth-button';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
+import { UserRole } from '@/lib/supabase';
 
 interface LoginScreenProps {
   onNavigateToOnboarding: () => void;
   onNavigateToRegister: () => void;
-  onLoginSuccess?: (role: 'customer' | 'provider') => void;
+  onLoginSuccess?: (role: UserRole) => void;
 }
 
 export function LoginScreen({
