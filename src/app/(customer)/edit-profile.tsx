@@ -19,11 +19,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserProfile, updateUserName, uploadAvatar } from '../../lib/users';
-
-const TEMP_CUSTOMER_ID = '18b0a243-3adc-42fc-aadf-faa7cc698a6d';
+import { useAuth } from '@/context/auth-context';
 
 export default function EditProfileScreen() {
     const router = useRouter();
+    const { user, profile: authProfile } = useAuth();
 
     // Personal Info States (Customer)
     const [name, setName] = useState('Judith Glavour');
@@ -53,19 +53,28 @@ export default function EditProfileScreen() {
 
     useEffect(() => {
         let isMounted = true;
-        getUserProfile(TEMP_CUSTOMER_ID).then((data) => {
+        const currentUserId = user?.id;
+        if (!currentUserId) {
+            setLoading(false);
+            return;
+        }
+        if (user.email) setEmail(user.email);
+        getUserProfile(currentUserId).then((data) => {
             if (!isMounted) return;
             if (data) {
                 if (data.name) setName(data.name);
                 if (data.avatar_url) setAvatarUrl(data.avatar_url);
                 if (data.phone) setPhone(data.phone);
+            } else if (authProfile) {
+                if (authProfile.full_name) setName(authProfile.full_name);
+                if (authProfile.phone_number) setPhone(authProfile.phone_number);
             }
             setLoading(false);
         });
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [user?.id, authProfile]);
 
     async function handlePickImage() {
         Alert.alert('Profile Photo', 'Choose an option', [
@@ -116,8 +125,9 @@ export default function EditProfileScreen() {
     }
 
     async function uploadPhoto(uri: string) {
+        if (!user?.id) return;
         setSaving(true);
-        const updated = await uploadAvatar(TEMP_CUSTOMER_ID, uri);
+        const updated = await uploadAvatar(user.id, uri);
         setSaving(false);
         if (updated) {
             setAvatarUrl(updated.avatar_url);
@@ -173,8 +183,13 @@ export default function EditProfileScreen() {
             return;
         }
 
+        if (!user?.id) {
+            Alert.alert('Error', 'No authenticated user found.');
+            return;
+        }
+
         setSaving(true);
-        await updateUserName(TEMP_CUSTOMER_ID, name.trim());
+        await updateUserName(user.id, name.trim());
         setSaving(false);
 
         Alert.alert('Success', 'Profile changes saved successfully.', [

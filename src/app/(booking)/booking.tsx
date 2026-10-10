@@ -15,9 +15,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createBooking, getProviderById } from '../../lib/bookings';
+import { useAuth } from '@/context/auth-context';
 
 export default function BookingScreen() {
     const router = useRouter();
+    const { user } = useAuth();
     const { providerId } = useLocalSearchParams();
     const [provider, setProvider] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -59,13 +61,18 @@ export default function BookingScreen() {
     }
 
     async function handleConfirm() {
+        if (!user?.id) {
+            Alert.alert('Sign In Required', 'Please sign in to confirm your booking.', [
+                { text: 'Sign In', onPress: () => router.push('/(auth)/login') },
+                { text: 'Cancel', style: 'cancel' }
+            ]);
+            return;
+        }
+
         setSubmitting(true);
 
-        // TODO: replace with real logged-in customer ID once Auth is built
-        const TEMP_CUSTOMER_ID = '18b0a243-3adc-42fc-aadf-faa7cc698a6d';
-
         const booking = await createBooking({
-            customerId: TEMP_CUSTOMER_ID,
+            customerId: user.id,
             providerId: provider.id,
             serviceDate: formatDate(date),
             serviceTime: formatTime(time),

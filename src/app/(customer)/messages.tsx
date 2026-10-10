@@ -13,21 +13,26 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCustomerBookings } from '../../lib/bookings';
-
-const TEMP_CUSTOMER_ID = '18b0a243-3adc-42fc-aadf-faa7cc698a6d'; // TODO: replace with real logged-in user once Auth is built
+import { useAuth } from '@/context/auth-context';
 
 export default function MessagesScreen() {
     const router = useRouter();
+    const { user } = useAuth();
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadConversations();
-    }, []);
+    }, [user?.id]);
 
     async function loadConversations() {
+        if (!user?.id) {
+            setBookings([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
-        const data = await getCustomerBookings(TEMP_CUSTOMER_ID);
+        const data = await getCustomerBookings(user.id);
         setBookings(data);
         setLoading(false);
     }

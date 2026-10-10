@@ -14,11 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserProfile } from '../../lib/users';
-
-const TEMP_CUSTOMER_ID = '18b0a243-3adc-42fc-aadf-faa7cc698a6d';
+import { useAuth } from '@/context/auth-context';
 
 export default function SettingsScreen() {
     const router = useRouter();
+    const { user, signOut } = useAuth();
     const [profile, setProfile] = useState<any>(null);
 
     // Customer-specific toggle states (preserving identical styling)
@@ -29,9 +29,13 @@ export default function SettingsScreen() {
     const [darkMode, setDarkMode] = useState(false);
 
     const loadProfile = useCallback(async () => {
-        const data = await getUserProfile(TEMP_CUSTOMER_ID);
+        if (!user?.id) {
+            setProfile(null);
+            return;
+        }
+        const data = await getUserProfile(user.id);
         if (data) setProfile(data);
-    }, []);
+    }, [user?.id]);
 
     useFocusEffect(
         useCallback(() => {
@@ -73,8 +77,9 @@ export default function SettingsScreen() {
             {
                 text: 'Log Out',
                 style: 'destructive',
-                onPress: () => {
-                    Alert.alert('Logged out', 'You have been logged out.');
+                onPress: async () => {
+                    await signOut();
+                    router.replace('/(auth)/login');
                 },
             },
         ]);

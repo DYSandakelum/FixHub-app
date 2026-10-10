@@ -13,17 +13,40 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { getDashboardStats, getPendingProviders, rejectProvider, verifyProvider } from '../../lib/admin';
+import { useAuth } from '@/context/auth-context';
 
 export default function AdminDashboardScreen() {
+    const router = useRouter();
+    const { user, role, isLoading: authLoading } = useAuth();
+    const [checkingAccess, setCheckingAccess] = useState(true);
     const [pendingProviders, setPendingProviders] = useState<any[]>([]);
     const [stats, setStats] = useState({ totalProviders: 0, totalBookings: 0, pendingVerifications: 0 });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
+        if (authLoading) return;
+
+        if (!user) {
+            router.replace('/(auth)/login');
+            return;
+        }
+
+        if (role !== 'admin') {
+            Alert.alert('Access Restricted', 'Administrator privileges are required to access this portal.');
+            if (role === 'provider') {
+                router.replace('/(provider)/provider-dashboard');
+            } else {
+                router.replace('/(customer)/home');
+            }
+            return;
+        }
+
+        setCheckingAccess(false);
         loadData();
-    }, []);
+    }, [user, role, authLoading]);
 
     async function loadData() {
         setLoading(true);
@@ -66,6 +89,16 @@ export default function AdminDashboardScreen() {
                 },
             },
         ]);
+    }
+
+    if (authLoading || checkingAccess) {
+        return (
+            <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+                <StatusBar barStyle="light-content" backgroundColor="#1E293B" />
+                <ActivityIndicator size="large" color="#2563EB" />
+                <Text style={styles.loadingText}>Verifying administrator privileges...</Text>
+            </View>
+        );
     }
 
     return (
