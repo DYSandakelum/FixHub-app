@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontWeight: '800',
     letterSpacing: -0.5,
+    color: '#0F172A',
   },
   largeBrandTitle: {
     fontSize: 38,
@@ -79,5 +80,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: 'center',
     fontWeight: '500',
+    color: '#64748B',
   },
 });

@@ -25,10 +25,6 @@ export function AuthInput({
   style,
   ...props
 }: AuthInputProps) {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
-
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -36,11 +32,9 @@ export function AuthInput({
     ? '#EF4444'
     : isFocused
     ? '#2563EB'
-    : isDark
-    ? '#374151'
-    : '#E5E7EB';
+    : '#E2E8F0';
 
-  const backgroundColor = '#F9FAFB';
+  const backgroundColor = '#F8FAFC';
 
   return (
     <View style={styles.container}>
@@ -59,15 +53,12 @@ export function AuthInput({
         {leftIcon && <ThemedText style={styles.icon}>{leftIcon}</ThemedText>}
 
         <TextInput
-          placeholderTextColor={isDark ? '#6B7280' : '#9CA3AF'}
+          placeholderTextColor="#94A3B8"
           secureTextEntry={isPassword && !showPassword}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={[
             styles.textInput,
-            {
-              color: colors.text,
-            },
             style,
           ]}
           {...props}
@@ -105,6 +96,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontSize: 13,
     letterSpacing: 0.2,
+    color: '#0F172A',
+    fontWeight: '600',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -117,11 +110,13 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: Spacing.two,
     fontSize: 16,
+    color: '#64748B',
   },
   textInput: {
     flex: 1,
     fontSize: 15,
     paddingVertical: 10,
+    color: '#0F172A',
   },
   eyeButton: {
     paddingHorizontal: Spacing.one,

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { FixHubLogo } from './fixhub-logo';
 import { AuthInput } from './auth-input';
 import { AuthButton } from './auth-button';
@@ -96,7 +95,7 @@ export function LoginScreen({
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -112,7 +111,7 @@ export function LoginScreen({
                 style={styles.backButton}
                 hitSlop={8}>
                 <ThemedText style={styles.backArrow}>←</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.backButtonText}>
                   Back
                 </ThemedText>
               </Pressable>
@@ -126,7 +125,6 @@ export function LoginScreen({
               </ThemedText>
               <ThemedText
                 type="small"
-                themeColor="textSecondary"
                 style={styles.subtitle}>
                 Sign in to your FixHub customer or provider account
               </ThemedText>
@@ -142,15 +140,11 @@ export function LoginScreen({
 
             {/* Supabase Notice if not configured */}
             {!isConfigured && (
-              <View
-                style={[
-                  styles.infoBanner,
-                  { backgroundColor: '#F0F9FF', borderColor: '#38BDF8' },
-                ]}>
+              <View style={styles.infoBanner}>
                 <ThemedText style={{ fontSize: 14 }}>ℹ️</ThemedText>
                 <ThemedText type="small" style={styles.infoBannerText}>
                   Supabase URL and Anon Key are using local default settings. Configure{' '}
-                  <ThemedText type="code">.env</ThemedText> with your Supabase credentials to
+                  <ThemedText type="code" style={{ color: '#1E40AF' }}>.env</ThemedText> with your Supabase credentials to
                   connect to your live project.
                 </ThemedText>
               </View>
@@ -198,20 +192,21 @@ export function LoginScreen({
 
             {/* Registration Links */}
             <Pressable onPress={onNavigateToRegister} style={styles.registrationSection}>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="small" style={styles.promptText}>
                 Don&apos;t have an account? <ThemedText type="smallBold" style={styles.signUpLink}>Sign Up</ThemedText>
               </ThemedText>
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -240,6 +235,10 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '700',
   },
+  backButtonText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
   header: {
     alignItems: 'center',
     marginTop: Spacing.two,
@@ -250,16 +249,19 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     marginTop: Spacing.two,
+    color: '#0F172A',
   },
   subtitle: {
     textAlign: 'center',
     marginTop: 2,
     maxWidth: 320,
+    color: '#64748B',
+    fontSize: 14,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderColor: '#EF4444',
     borderWidth: 1,
     borderRadius: 12,
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   errorBannerText: {
-    color: '#EF4444',
+    color: '#DC2626',
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -277,6 +279,8 @@ const styles = StyleSheet.create({
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#93C5FD',
     borderRadius: 12,
     borderWidth: 1,
     padding: Spacing.three,
@@ -287,6 +291,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     lineHeight: 17,
+    color: '#1E40AF',
   },
   form: {
     width: '100%',
@@ -301,5 +306,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
   },
-  signUpLink: { color: '#2563EB' },
+  promptText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
+  signUpLink: {
+    color: '#2563EB',
+    fontWeight: '700',
+  },
 });

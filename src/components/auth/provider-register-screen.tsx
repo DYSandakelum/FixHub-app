@@ -9,13 +9,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { FixHubLogo } from './fixhub-logo';
 import { AuthInput } from './auth-input';
 import { AuthButton } from './auth-button';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface ProviderRegisterScreenProps {
   onNavigateToLogin: () => void;
@@ -39,8 +37,6 @@ export function ProviderRegisterScreen({
   onNavigateToCustomerRegister,
   onRegistrationSuccess,
 }: ProviderRegisterScreenProps) {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
   const { signUpProvider } = useAuth();
 
   const [fullName, setFullName] = useState('');
@@ -146,7 +142,7 @@ export function ProviderRegisterScreen({
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -162,7 +158,7 @@ export function ProviderRegisterScreen({
                 style={styles.backButton}
                 hitSlop={8}>
                 <ThemedText style={styles.backArrow}>←</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.backButtonText}>
                   Back to Sign In
                 </ThemedText>
               </Pressable>
@@ -182,7 +178,6 @@ export function ProviderRegisterScreen({
               </ThemedText>
               <ThemedText
                 type="small"
-                themeColor="textSecondary"
                 style={styles.subtitle}>
                 Register your business or technician profile to receive service bookings
               </ThemedText>
@@ -267,18 +262,7 @@ export function ProviderRegisterScreen({
                         }}
                         style={[
                           styles.categoryChip,
-                          {
-                            backgroundColor: isSelected
-                              ? '#2563EB'
-                              : isDark
-                              ? '#F8FAFC'
-                              : '#F8FAFC',
-                            borderColor: isSelected
-                              ? '#2563EB'
-                              : isDark
-                              ? '#374151'
-                              : '#E2E8F0',
-                          },
+                          isSelected ? styles.categoryChipSelected : styles.categoryChipUnselected,
                         ]}>
                         <ThemedText style={{ fontSize: 16 }}>{cat.icon}</ThemedText>
                         <ThemedText
@@ -359,7 +343,7 @@ export function ProviderRegisterScreen({
             {/* Footer Navigation */}
             <View style={styles.footerSection}>
               <View style={styles.switchRoleCard}>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.switchRoleText}>
                   Looking to hire services instead?
                 </ThemedText>
                 <Pressable
@@ -372,7 +356,7 @@ export function ProviderRegisterScreen({
               </View>
 
               <Pressable onPress={onNavigateToLogin} style={styles.loginRow}>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.promptText}>
                   Already have an account?{' '}
                   <ThemedText type="smallBold" style={styles.blueLink}>
                     Sign In
@@ -383,13 +367,14 @@ export function ProviderRegisterScreen({
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -421,8 +406,14 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '700',
   },
+  backButtonText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
   roleBadge: {
-    backgroundColor: 'rgba(32, 138, 239, 0.12)',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#DBEAFE',
+    borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -430,6 +421,7 @@ const styles = StyleSheet.create({
   roleBadgeText: {
     color: '#2563EB',
     fontSize: 12,
+    fontWeight: '700',
   },
   header: {
     alignItems: 'center',
@@ -442,16 +434,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: Spacing.two,
     textAlign: 'center',
+    color: '#0F172A',
   },
   subtitle: {
     textAlign: 'center',
     marginTop: 2,
     maxWidth: 320,
+    color: '#64748B',
+    fontSize: 14,
   },
   successBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#F0FDF4',
     borderColor: '#10B981',
     borderWidth: 1,
     borderRadius: 12,
@@ -460,7 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   successBannerText: {
-    color: '#059669',
+    color: '#047857',
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -469,7 +464,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderColor: '#EF4444',
     borderWidth: 1,
     borderRadius: 12,
@@ -478,7 +473,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   errorBannerText: {
-    color: '#EF4444',
+    color: '#DC2626',
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -494,6 +489,8 @@ const styles = StyleSheet.create({
   categoryLabel: {
     marginBottom: Spacing.two,
     fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -503,15 +500,24 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
     gap: 6,
   },
+  categoryChipUnselected: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
+  categoryChipSelected: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
   chipText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#334155',
   },
   chipTextSelected: {
     color: '#FFFFFF',
@@ -541,8 +547,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.three,
     borderRadius: 12,
-    backgroundColor: 'rgba(32, 138, 239, 0.05)',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderWidth: 1,
     gap: 4,
+  },
+  switchRoleText: {
+    color: '#64748B',
+    fontSize: 14,
   },
   customerLinkButton: {
     marginTop: 2,
@@ -550,6 +562,11 @@ const styles = StyleSheet.create({
   },
   blueLink: {
     color: '#2563EB',
+    fontWeight: '700',
+  },
+  promptText: {
+    color: '#64748B',
+    fontSize: 14,
   },
   loginRow: {
     paddingVertical: Spacing.one,

@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { FixHubLogo } from './fixhub-logo';
 import { AuthInput } from './auth-input';
 import { AuthButton } from './auth-button';
@@ -120,7 +119,7 @@ export function CustomerRegisterScreen({
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -136,7 +135,7 @@ export function CustomerRegisterScreen({
                 style={styles.backButton}
                 hitSlop={8}>
                 <ThemedText style={styles.backArrow}>←</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.backButtonText}>
                   Back to Sign In
                 </ThemedText>
               </Pressable>
@@ -156,7 +155,6 @@ export function CustomerRegisterScreen({
               </ThemedText>
               <ThemedText
                 type="small"
-                themeColor="textSecondary"
                 style={styles.subtitle}>
                 Sign up to book home repairs, maintenance, and expert services
               </ThemedText>
@@ -261,7 +259,7 @@ export function CustomerRegisterScreen({
             {/* Footer Navigation */}
             <View style={styles.footerSection}>
               <View style={styles.switchRoleCard}>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.switchRoleText}>
                   Are you a service technician or contractor?
                 </ThemedText>
                 <Pressable
@@ -274,7 +272,7 @@ export function CustomerRegisterScreen({
               </View>
 
               <Pressable onPress={onNavigateToLogin} style={styles.loginRow}>
-                <ThemedText type="small" themeColor="textSecondary">
+                <ThemedText type="small" style={styles.promptText}>
                   Already have an account?{' '}
                   <ThemedText type="smallBold" style={styles.blueLink}>
                     Sign In
@@ -285,13 +283,14 @@ export function CustomerRegisterScreen({
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   safeArea: {
     flex: 1,
@@ -323,8 +322,14 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '700',
   },
+  backButtonText: {
+    color: '#64748B',
+    fontSize: 14,
+  },
   roleBadge: {
-    backgroundColor: 'rgba(32, 138, 239, 0.12)',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#DBEAFE',
+    borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -332,6 +337,7 @@ const styles = StyleSheet.create({
   roleBadgeText: {
     color: '#2563EB',
     fontSize: 12,
+    fontWeight: '700',
   },
   header: {
     alignItems: 'center',
@@ -344,16 +350,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: Spacing.two,
     textAlign: 'center',
+    color: '#0F172A',
   },
   subtitle: {
     textAlign: 'center',
     marginTop: 2,
     maxWidth: 320,
+    color: '#64748B',
+    fontSize: 14,
   },
   successBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#F0FDF4',
     borderColor: '#10B981',
     borderWidth: 1,
     borderRadius: 12,
@@ -362,7 +371,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   successBannerText: {
-    color: '#059669',
+    color: '#047857',
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -371,7 +380,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderColor: '#EF4444',
     borderWidth: 1,
     borderRadius: 12,
@@ -380,7 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   errorBannerText: {
-    color: '#EF4444',
+    color: '#DC2626',
     flex: 1,
     fontSize: 13,
     fontWeight: '500',
@@ -404,8 +413,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.three,
     borderRadius: 12,
-    backgroundColor: 'rgba(32, 138, 239, 0.05)',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+    borderWidth: 1,
     gap: 4,
+  },
+  switchRoleText: {
+    color: '#64748B',
+    fontSize: 14,
   },
   providerLinkButton: {
     marginTop: 2,
@@ -413,6 +428,11 @@ const styles = StyleSheet.create({
   },
   blueLink: {
     color: '#2563EB',
+    fontWeight: '700',
+  },
+  promptText: {
+    color: '#64748B',
+    fontSize: 14,
   },
   loginRow: {
     paddingVertical: Spacing.one,

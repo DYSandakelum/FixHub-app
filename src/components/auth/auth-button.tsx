@@ -5,10 +5,9 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
+  Text,
 } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Spacing } from '@/constants/theme';
 
 interface AuthButtonProps {
   title: string;
@@ -31,17 +30,13 @@ export function AuthButton({
   textStyle,
   icon,
 }: AuthButtonProps) {
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
-
   const getBackgroundColor = () => {
-    if (disabled || isLoading) return isDark ? '#374151' : '#CBD5E1';
+    if (disabled || isLoading) return '#E2E8F0';
     switch (variant) {
       case 'primary':
         return '#2563EB';
       case 'secondary':
-        return isDark ? '#374151' : '#E2E8F0';
+        return '#F1F5F9';
       case 'outline':
         return 'transparent';
       case 'danger':
@@ -52,13 +47,13 @@ export function AuthButton({
   };
 
   const getTextColor = () => {
-    if (disabled || isLoading) return isDark ? '#9CA3AF' : '#64748B';
+    if (disabled || isLoading) return '#94A3B8';
     switch (variant) {
       case 'primary':
       case 'danger':
         return '#FFFFFF';
       case 'secondary':
-        return colors.text;
+        return '#0F172A';
       case 'outline':
         return '#2563EB';
       default:
@@ -68,7 +63,7 @@ export function AuthButton({
 
   const getBorderColor = () => {
     if (variant === 'outline') {
-      return disabled ? (isDark ? '#4B5563' : '#CBD5E1') : '#2563EB';
+      return disabled ? '#E2E8F0' : '#2563EB';
     }
     return 'transparent';
   };
@@ -93,8 +88,7 @@ export function AuthButton({
           color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : '#2563EB'}
         />
       ) : (
-        <ThemedText
-          type="default"
+        <Text
           style={[
             styles.text,
             {
@@ -104,7 +98,7 @@ export function AuthButton({
           ]}>
           {icon ? `${icon}  ` : ''}
           {title}
-        </ThemedText>
+        </Text>
       )}
     </Pressable>
   );

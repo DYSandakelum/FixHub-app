@@ -2,7 +2,6 @@ import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { FixHubLogo } from './fixhub-logo';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 
@@ -18,18 +17,18 @@ export function RegistrationScreen({
   onNavigateToProvider,
 }: RegistrationScreenProps) {
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Pressable onPress={onNavigateToLogin} style={styles.backButton}>
             <ThemedText style={styles.backArrow}>←</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">Back to Login</ThemedText>
+            <ThemedText type="small" style={styles.backButtonText}>Back to Login</ThemedText>
           </Pressable>
 
           <View style={styles.header}>
             <FixHubLogo size="normal" showTagline={false} />
             <ThemedText type="subtitle" style={styles.title}>Create your FixHub account</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary" style={styles.subtitle}>
+            <ThemedText type="small" style={styles.subtitle}>
               Choose the account type that fits how you use FixHub.
             </ThemedText>
           </View>
@@ -41,15 +40,15 @@ export function RegistrationScreen({
               accessibilityLabel="Register as Customer"
               style={({ pressed }) => [
                 styles.option,
-                { backgroundColor: '#F8FAFC', borderColor: '#D9E4F0' },
+                { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' },
                 pressed && styles.pressed,
               ]}>
-              <View style={[styles.iconWrap, { backgroundColor: 'rgba(32, 138, 239, 0.12)' }]}>
+              <View style={[styles.iconWrap, { backgroundColor: 'rgba(37, 99, 235, 0.12)' }]}>
                 <ThemedText style={styles.icon}>👤</ThemedText>
               </View>
               <View style={styles.optionCopy}>
                 <ThemedText type="subtitle" style={styles.optionTitle}>Customer</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">Book home services</ThemedText>
+                <ThemedText type="small" style={styles.optionDesc}>Book home services</ThemedText>
               </View>
               <ThemedText style={styles.chevron}>›</ThemedText>
             </Pressable>
@@ -60,7 +59,7 @@ export function RegistrationScreen({
               accessibilityLabel="Register as Provider"
               style={({ pressed }) => [
                 styles.option,
-                { backgroundColor: '#F8FAFC', borderColor: '#D9E4F0' },
+                { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' },
                 pressed && styles.pressed,
               ]}>
               <View style={[styles.iconWrap, { backgroundColor: 'rgba(245, 158, 11, 0.14)' }]}>
@@ -68,19 +67,19 @@ export function RegistrationScreen({
               </View>
               <View style={styles.optionCopy}>
                 <ThemedText type="subtitle" style={styles.optionTitle}>Provider</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">Offer your services</ThemedText>
+                <ThemedText type="small" style={styles.optionDesc}>Offer your services</ThemedText>
               </View>
               <ThemedText style={styles.chevron}>›</ThemedText>
             </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   safeArea: { flex: 1 },
   scrollContent: {
     paddingHorizontal: Spacing.four,
@@ -91,13 +90,14 @@ const styles = StyleSheet.create({
   },
   backButton: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, paddingVertical: Spacing.two },
   backArrow: { fontSize: 18, color: '#2563EB', fontWeight: '700' },
+  backButtonText: { color: '#64748B', fontSize: 14 },
   header: { alignItems: 'center', marginTop: Spacing.five, marginBottom: Spacing.five, gap: Spacing.two },
-  title: { fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  subtitle: { textAlign: 'center', maxWidth: 320 },
+  title: { fontSize: 26, fontWeight: '700', textAlign: 'center', color: '#0F172A' },
+  subtitle: { textAlign: 'center', maxWidth: 320, color: '#64748B', fontSize: 14 },
   options: { width: '100%', gap: Spacing.three },
   option: {
     minHeight: 104,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 14,
     padding: Spacing.three,
     flexDirection: 'row',
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   iconWrap: { width: 52, height: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   icon: { fontSize: 26 },
   optionCopy: { flex: 1, gap: 4 },
-  optionTitle: { fontSize: 18, fontWeight: '700', color: '#2563EB' },
+  optionTitle: { fontSize: 18, fontWeight: '700', color: '#0F172A' },
+  optionDesc: { fontSize: 13, color: '#64748B' },
   chevron: { fontSize: 30, color: '#2563EB', fontWeight: '300' },
 });
