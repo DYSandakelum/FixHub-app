@@ -123,7 +123,7 @@ export default function ProviderScheduleScreen() {
                                     paddingBottom: 10,
                                 }
                             }
-                        }}
+                        } as any}
                         style={styles.calendar}
                     />
                 </View>

@@ -520,8 +520,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 4,
         elevation: 3,
-        borderWidth: 2,
-        borderColor: '#F3F4F6',
     },
     heroName: {
         fontSize: 22,
