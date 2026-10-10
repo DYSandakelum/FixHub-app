@@ -1,12 +1,30 @@
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getRoleNameString, useSettings } from './settingsStore';
+import { useAuth } from '@/context/auth-context';
 
 export default function ProviderProfileScreen() {
     const router = useRouter();
     const { serviceCategory } = useSettings();
+    const { user, profile, signOut } = useAuth();
+
+    const providerName = profile?.full_name || user?.user_metadata?.full_name || 'Service Provider';
+
+    const handleLogout = () => {
+        Alert.alert('Log Out', 'Are you sure you want to log out of your FixHub account?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Log Out',
+                style: 'destructive',
+                onPress: async () => {
+                    await signOut();
+                    router.replace('/(auth)/login');
+                },
+            },
+        ]);
+    };
 
     return (
         <View style={styles.screen}>
@@ -20,7 +38,7 @@ export default function ProviderProfileScreen() {
                             <Ionicons name="person-outline" size={40} color="#2563EB" />
                         </View>
                         <View style={styles.heroInfo}>
-                            <Text style={styles.heroName}>Judith Glavour</Text>
+                            <Text style={styles.heroName}>{providerName}</Text>
                             <Text style={styles.heroSubtitle}>{getRoleNameString(serviceCategory)} · Colombo</Text>
                         </View>
                     </View>
@@ -100,7 +118,7 @@ export default function ProviderProfileScreen() {
                 </View>
 
                 {/* ── Log out Button ── */}
-                <TouchableOpacity style={styles.logoutBtn} onPress={() => router.replace('/')}>
+                <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                     <MaterialIcons name="logout" size={20} color="#DC2626" />
                     <Text style={styles.logoutBtnText}>Log out</Text>
                 </TouchableOpacity>

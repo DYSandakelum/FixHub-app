@@ -241,7 +241,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             await supabase.from('users').upsert({
               id: data.user.id,
-              email: cleanEmail,
               name: fullName.trim(),
               phone: phoneNumber.trim(),
               role: 'customer',
@@ -316,7 +315,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             await supabase.from('users').upsert({
               id: data.user.id,
-              email: cleanEmail,
               name: fullName.trim(),
               phone: phoneNumber.trim(),
               role: 'provider',
@@ -325,7 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn('Users table upsert note:', usersErr);
           }
 
-          // 2. Sync with 'profiles' table
+          // 2. Sync with 'profiles' table (if table exists)
           try {
             await supabase.from('profiles').upsert({
               id: data.user.id,
@@ -345,6 +343,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await supabase.from('providers').upsert({
               id: data.user.id,
               service_type: serviceCategory,
+              bio: serviceDescription.trim(),
               verified: false,
             });
           } catch (provErr) {

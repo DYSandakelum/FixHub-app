@@ -83,7 +83,7 @@ export default function ChatScreen() {
                 )
             `)
             .eq('id', bookingId)
-            .single();
+            .maybeSingle();
 
         if (data) {
             const bookingData: any = data;

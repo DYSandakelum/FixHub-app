@@ -2,14 +2,30 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { settingsStore, useSettings } from './settingsStore';
+import { useAuth } from '@/context/auth-context';
 
 export default function ProviderSettingsScreen() {
     const router = useRouter();
     const { autoAccept, newRequestAlerts, appLanguage } = useSettings();
     const { t } = useTranslation();
+    const { signOut } = useAuth();
+
+    const handleLogout = () => {
+        Alert.alert('Log Out', 'Are you sure you want to log out of your FixHub account?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Log Out',
+                style: 'destructive',
+                onPress: async () => {
+                    await signOut();
+                    router.replace('/(auth)/login');
+                },
+            },
+        ]);
+    };
 
     const [isEditingLanguage, setIsEditingLanguage] = useState(false);
     const [vacationMode, setVacationMode] = useState(false);
@@ -209,6 +225,20 @@ export default function ProviderSettingsScreen() {
                             style={styles.switchPad}
                         />
                     </View>
+                </View>
+
+                {/* ── ACCOUNT / LOGOUT ── */}
+                <Text style={styles.sectionLabel}>{t('ACCOUNT')}</Text>
+                <View style={styles.cardBlock}>
+                    <TouchableOpacity style={styles.rowItem} onPress={handleLogout} activeOpacity={0.7}>
+                        <View style={[styles.iconBox, { backgroundColor: '#FEF2F2' }]}>
+                            <MaterialIcons name="logout" size={20} color="#DC2626" />
+                        </View>
+                        <View style={styles.rowTextCol}>
+                            <Text style={[styles.itemTitle, { color: '#DC2626' }]}>{t('Log out')}</Text>
+                        </View>
+                        <MaterialIcons name="chevron-right" size={22} color="#9CA3AF" />
+                    </TouchableOpacity>
                 </View>
 
                 <View style={{ height: 40 }} />

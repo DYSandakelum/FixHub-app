@@ -18,12 +18,12 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserProfile, updateUserName, uploadAvatar } from '../../lib/users';
+import { getUserProfile, updateUserProfile, uploadAvatar } from '../../lib/users';
 import { useAuth } from '@/context/auth-context';
 
 export default function EditProfileScreen() {
     const router = useRouter();
-    const { user, profile: authProfile } = useAuth();
+    const { user, profile: authProfile, refreshProfile } = useAuth();
 
     // Personal Info States (Customer)
     const [name, setName] = useState('Judith Glavour');
@@ -45,7 +45,7 @@ export default function EditProfileScreen() {
     // Modal state for editing customer fields
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editingField, setEditingField] = useState<{
-        key: 'name' | 'phone' | 'email' | 'country' | 'serviceAddress' | 'propertyType' | 'preferredPayment';
+        key: 'name' | 'phone' | 'country' | 'serviceAddress' | 'propertyType' | 'preferredPayment';
         label: string;
         value: string;
     } | null>(null);
@@ -149,12 +149,16 @@ export default function EditProfileScreen() {
     }
 
     function openEditField(
-        key: 'name' | 'phone' | 'email' | 'country' | 'serviceAddress' | 'propertyType' | 'preferredPayment',
+        key: 'name' | 'phone' | 'country' | 'serviceAddress' | 'propertyType' | 'preferredPayment',
         label: string,
         value: string
     ) {
         setEditingField({ key, label, value });
-        setModalInputValue(value);
+        if (key === 'phone') {
+            setModalInputValue(value.replace(/[^0-9]/g, '').slice(0, 10));
+        } else {
+            setModalInputValue(value);
+        }
         setEditModalVisible(true);
     }
 
@@ -165,13 +169,24 @@ export default function EditProfileScreen() {
         }
 
         const trimmed = modalInputValue.trim();
-        if (editingField?.key === 'name') setName(trimmed);
-        else if (editingField?.key === 'phone') setPhone(trimmed);
-        else if (editingField?.key === 'email') setEmail(trimmed);
-        else if (editingField?.key === 'country') setCountry(trimmed);
-        else if (editingField?.key === 'serviceAddress') setServiceAddress(trimmed);
-        else if (editingField?.key === 'propertyType') setPropertyType(trimmed);
-        else if (editingField?.key === 'preferredPayment') setPreferredPayment(trimmed);
+        if (editingField?.key === 'name') {
+            setName(trimmed);
+        } else if (editingField?.key === 'phone') {
+            const digits = trimmed.replace(/[^0-9]/g, '');
+            if (digits.length !== 10) {
+                Alert.alert('Invalid Phone Number', 'Phone number must be exactly 10 digits.');
+                return;
+            }
+            setPhone(digits);
+        } else if (editingField?.key === 'country') {
+            setCountry(trimmed);
+        } else if (editingField?.key === 'serviceAddress') {
+            setServiceAddress(trimmed);
+        } else if (editingField?.key === 'propertyType') {
+            setPropertyType(trimmed);
+        } else if (editingField?.key === 'preferredPayment') {
+            setPreferredPayment(trimmed);
+        }
 
         setEditModalVisible(false);
         setEditingField(null);
@@ -183,14 +198,32 @@ export default function EditProfileScreen() {
             return;
         }
 
+        const cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+        if (cleanPhone && cleanPhone.length !== 10) {
+            Alert.alert('Invalid Phone Number', 'Phone number must be exactly 10 digits.');
+            return;
+        }
+
         if (!user?.id) {
             Alert.alert('Error', 'No authenticated user found.');
             return;
         }
 
         setSaving(true);
-        await updateUserName(user.id, name.trim());
+        const updated = await updateUserProfile(user.id, {
+            name: name.trim(),
+            phone: cleanPhone || null,
+        });
         setSaving(false);
+
+        if (!updated) {
+            Alert.alert('Error', 'Failed to save changes. Please try again.');
+            return;
+        }
+
+        if (refreshProfile) {
+            await refreshProfile();
+        }
 
         Alert.alert('Success', 'Profile changes saved successfully.', [
             { text: 'OK', onPress: () => router.back() },
@@ -306,12 +339,8 @@ export default function EditProfileScreen() {
 
                         <View style={styles.divider} />
 
-                        {/* Email Row */}
-                        <TouchableOpacity
-                            style={styles.fieldRow}
-                            onPress={() => openEditField('email', 'EMAIL ADDRESS', email)}
-                            activeOpacity={0.7}
-                        >
+                        {/* Email Row (Read-Only) */}
+                        <View style={styles.fieldRow}>
                             <View style={styles.iconBox}>
                                 <Feather name="mail" size={18} color="#2563EB" />
                             </View>
@@ -319,8 +348,8 @@ export default function EditProfileScreen() {
                                 <Text style={styles.fieldLabelUpper}>EMAIL ADDRESS</Text>
                                 <Text style={styles.fieldValueText}>{email}</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={20} color="#94A3B8" />
-                        </TouchableOpacity>
+                            <Feather name="lock" size={16} color="#94A3B8" />
+                        </View>
 
                         <View style={styles.divider} />
 
@@ -483,11 +512,29 @@ export default function EditProfileScreen() {
                         <TextInput
                             style={styles.modalInput}
                             value={modalInputValue}
-                            onChangeText={setModalInputValue}
+                            onChangeText={(text) => {
+                                if (editingField?.key === 'phone') {
+                                    const digits = text.replace(/[^0-9]/g, '').slice(0, 10);
+                                    setModalInputValue(digits);
+                                } else {
+                                    setModalInputValue(text);
+                                }
+                            }}
                             autoFocus
-                            placeholder={`Enter ${editingField?.label?.toLowerCase()}`}
+                            placeholder={
+                                editingField?.key === 'phone'
+                                    ? '10-digit number (e.g. 0771234567)'
+                                    : `Enter ${editingField?.label?.toLowerCase()}`
+                            }
                             placeholderTextColor="#94A3B8"
+                            keyboardType={editingField?.key === 'phone' ? 'phone-pad' : 'default'}
+                            maxLength={editingField?.key === 'phone' ? 10 : undefined}
                         />
+                        {editingField?.key === 'phone' && (
+                            <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4, marginLeft: 4 }}>
+                                {modalInputValue.length}/10 digits
+                            </Text>
+                        )}
 
                         <View style={styles.modalBtnRow}>
                             <TouchableOpacity

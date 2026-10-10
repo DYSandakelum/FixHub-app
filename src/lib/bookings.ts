@@ -20,7 +20,7 @@ export async function getProviderById(providerId: string) {
         .from('providers')
         .select('*, users(name, phone)')
         .eq('id', providerId)
-        .single();
+        .maybeSingle();
 
     if (error) {
         console.error('Error fetching provider:', error.message);
@@ -70,7 +70,7 @@ export async function updateBooking(bookingId: string, updates: { service_date?:
         .update(updates)
         .eq('id', bookingId)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) {
         console.error('Error updating booking:', error.message);

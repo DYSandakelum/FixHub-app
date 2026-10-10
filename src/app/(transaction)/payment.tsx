@@ -51,7 +51,7 @@ export default function PaymentScreen() {
                 )
             `)
             .eq('id', bookingId)
-            .single();
+            .maybeSingle();
 
         if (data) {
             setBooking(data);

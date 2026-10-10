@@ -53,7 +53,7 @@ export default function BookingTrackingScreen() {
                 )
             `)
             .eq('id', bookingId)
-            .single();
+            .maybeSingle();
 
         if (data) {
             setBooking(data);

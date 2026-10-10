@@ -60,11 +60,11 @@ export function CustomerRegisterScreen({
       }
     }
 
-    const trimmedPhone = phoneNumber.trim();
-    if (!trimmedPhone) {
+    const cleanPhoneDigits = phoneNumber.replace(/[^0-9]/g, '');
+    if (!cleanPhoneDigits) {
       newErrors.phoneNumber = 'Phone number is required';
-    } else if (trimmedPhone.replace(/[^0-9]/g, '').length < 7) {
-      newErrors.phoneNumber = 'Please enter a valid phone number (at least 7 digits)';
+    } else if (cleanPhoneDigits.length !== 10) {
+      newErrors.phoneNumber = 'Phone number must be exactly 10 digits';
     }
 
     if (!password) {
@@ -208,10 +208,11 @@ export function CustomerRegisterScreen({
 
               <AuthInput
                 label="Phone Number"
-                placeholder="e.g. +1 555-019-2834"
+                placeholder="e.g. 0771234567 (10 digits)"
                 value={phoneNumber}
                 onChangeText={(text) => {
-                  setPhoneNumber(text);
+                  const digits = text.replace(/[^0-9]/g, '').slice(0, 10);
+                  setPhoneNumber(digits);
                   if (errors.phoneNumber) setErrors((prev) => ({ ...prev, phoneNumber: '' }));
                 }}
                 keyboardType="phone-pad"

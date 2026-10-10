@@ -68,7 +68,7 @@ export default function RateReviewScreen() {
                 )
             `)
             .eq('id', bookingId)
-            .single();
+            .maybeSingle();
 
         if (data) {
             setBooking(data);

@@ -19,8 +19,22 @@ import { useAuth } from '@/context/auth-context';
 
 export default function AdminDashboardScreen() {
     const router = useRouter();
-    const { user, role, isLoading: authLoading } = useAuth();
+    const { user, role, isLoading: authLoading, signOut } = useAuth();
     const [checkingAccess, setCheckingAccess] = useState(true);
+
+    const handleLogout = () => {
+        Alert.alert('Log Out', 'Are you sure you want to log out of the Admin portal?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+                text: 'Log Out',
+                style: 'destructive',
+                onPress: async () => {
+                    await signOut();
+                    router.replace('/(auth)/login');
+                },
+            },
+        ]);
+    };
     const [pendingProviders, setPendingProviders] = useState<any[]>([]);
     const [stats, setStats] = useState({ totalProviders: 0, totalBookings: 0, pendingVerifications: 0 });
     const [loading, setLoading] = useState(true);
@@ -115,8 +129,18 @@ export default function AdminDashboardScreen() {
                         </View>
                         <Text style={styles.heroTitle}>Admin Dashboard</Text>
                     </View>
-                    <View style={styles.roleBadge}>
-                        <Text style={styles.roleBadgeText}>FixHub Staff</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={styles.roleBadge}>
+                            <Text style={styles.roleBadgeText}>FixHub Staff</Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={handleLogout}
+                            style={styles.heroLogoutBtn}
+                            activeOpacity={0.7}
+                            accessibilityLabel="Log out"
+                        >
+                            <MaterialIcons name="logout" size={18} color="#FFFFFF" />
+                        </TouchableOpacity>
                     </View>
                 </View>
                 <Text style={styles.heroSubtitle}>Platform operations and provider verifications</Text>
@@ -277,6 +301,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 14,
+    },
+    heroLogoutBtn: {
+        width: 30,
+        height: 30,
+        borderRadius: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     roleBadgeText: {
         fontSize: 11,

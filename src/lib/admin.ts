@@ -21,7 +21,7 @@ export async function verifyProvider(providerId: string) {
         .update({ verified: true })
         .eq('id', providerId)
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) {
         console.error('Error verifying provider:', error.message);
