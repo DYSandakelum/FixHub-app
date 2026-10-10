@@ -1,8 +1,19 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import BackButton from '../../components/BackButton';
+import {
+    ActivityIndicator,
+    Alert,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { createBooking, getProviderById } from '../../lib/bookings';
 
 export default function BookingScreen() {
@@ -75,7 +86,9 @@ export default function BookingScreen() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <Text>Loading...</Text>
+                <StatusBar barStyle="dark-content" />
+                <ActivityIndicator size="large" color="#2563EB" />
+                <Text style={styles.loadingText}>Loading booking form...</Text>
             </View>
         );
     }
@@ -83,81 +96,440 @@ export default function BookingScreen() {
     if (!provider) {
         return (
             <View style={styles.center}>
-                <Text>Provider not found.</Text>
+                <StatusBar barStyle="dark-content" />
+                <MaterialIcons name="error-outline" size={48} color="#94A3B8" />
+                <Text style={styles.loadingText}>Provider not found.</Text>
+                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+                    <Text style={styles.backBtnText}>Go Back</Text>
+                </TouchableOpacity>
             </View>
         );
     }
 
     return (
-        <ScrollView style={styles.container}>
-            <BackButton />
-            <View style={styles.providerCard}>
-                <Text style={styles.providerName}>{provider.users?.name ?? 'Unnamed Provider'}</Text>
-                <Text style={styles.providerType}>{provider.service_type}</Text>
+        <View style={styles.screen}>
+            <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
+
+            {/* ── Curved Royal Blue Hero Header ── */}
+            <View style={styles.blueHeaderSection}>
+                <SafeAreaView edges={['top']} style={{ flex: 0 }} />
+                <View style={styles.headerTop}>
+                    <TouchableOpacity style={styles.headerBackBtn} onPress={() => router.back()} activeOpacity={0.7}>
+                        <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitleBox}>
+                        <Text style={styles.headerTitleBlue}>Schedule Service</Text>
+                        <Text style={styles.headerSubtitleBlue}>
+                            Booking with {provider.users?.name ?? 'Provider'}
+                        </Text>
+                    </View>
+                    <View style={{ width: 40 }} />
+                </View>
             </View>
 
-            <Text style={styles.sectionTitle}>Select Date</Text>
-            <TouchableOpacity style={styles.pickerField} onPress={() => setShowDatePicker(true)}>
-                <Text style={styles.pickerText}>{formatDateDisplay(date)}</Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-                <DateTimePicker
-                    value={date}
-                    mode="date"
-                    minimumDate={new Date()}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={(event, selectedDate) => {
-                        setShowDatePicker(false);
-                        if (selectedDate) setDate(selectedDate);
-                    }}
-                />
-            )}
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* ── Floating Overlapping Provider Card ── */}
+                <View style={styles.floatingProviderCard}>
+                    <View style={styles.avatarPlaceholder}>
+                        <MaterialIcons name="person" size={28} color="#2563EB" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.providerName}>{provider.users?.name ?? 'Service Provider'}</Text>
+                        <View style={styles.servicePill}>
+                            <Text style={styles.providerType}>{provider.service_type}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.rateBox}>
+                        <Text style={styles.rateValue}>Rs. {provider.rate}</Text>
+                        <Text style={styles.rateUnit}>/hr</Text>
+                    </View>
+                </View>
 
-            <Text style={styles.sectionTitle}>Select Time</Text>
-            <TouchableOpacity style={styles.pickerField} onPress={() => setShowTimePicker(true)}>
-                <Text style={styles.pickerText}>{formatTime(time)}</Text>
-            </TouchableOpacity>
-            {showTimePicker && (
-                <DateTimePicker
-                    value={time}
-                    mode="time"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={(event, selectedTime) => {
-                        setShowTimePicker(false);
-                        if (selectedTime) setTime(selectedTime);
-                    }}
-                />
-            )}
+                {/* ── Select Date ── */}
+                <Text style={styles.sectionSimpleTitle}>Appointment Date</Text>
+                <TouchableOpacity
+                    style={styles.pickerField}
+                    onPress={() => setShowDatePicker(true)}
+                    activeOpacity={0.8}
+                >
+                    <View style={styles.pickerLeft}>
+                        <View style={styles.pickerIconCircle}>
+                            <MaterialIcons name="calendar-today" size={20} color="#2563EB" />
+                        </View>
+                        <View>
+                            <Text style={styles.pickerLabelUpper}>SERVICE DATE</Text>
+                            <Text style={styles.pickerText}>{formatDateDisplay(date)}</Text>
+                        </View>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={22} color="#CBD5E1" />
+                </TouchableOpacity>
 
-            <View style={styles.priceCard}>
-                <Text style={styles.priceLabel}>Estimated Price</Text>
-                <Text style={styles.priceValue}>Rs. {provider.rate}</Text>
-            </View>
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={date}
+                        mode="date"
+                        minimumDate={new Date()}
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) setDate(selectedDate);
+                        }}
+                    />
+                )}
 
-            <TouchableOpacity
-                style={[styles.confirmButton, submitting && styles.confirmButtonDisabled]}
-                onPress={handleConfirm}
-                disabled={submitting}
-            >
-                <Text style={styles.confirmButtonText}>{submitting ? 'Booking...' : 'Confirm Booking'}</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                {/* ── Select Time ── */}
+                <Text style={styles.sectionSimpleTitle}>Appointment Time</Text>
+                <TouchableOpacity
+                    style={styles.pickerField}
+                    onPress={() => setShowTimePicker(true)}
+                    activeOpacity={0.8}
+                >
+                    <View style={styles.pickerLeft}>
+                        <View style={styles.pickerIconCircle}>
+                            <MaterialIcons name="schedule" size={20} color="#2563EB" />
+                        </View>
+                        <View>
+                            <Text style={styles.pickerLabelUpper}>SERVICE TIME</Text>
+                            <Text style={styles.pickerText}>{formatTime(time)}</Text>
+                        </View>
+                    </View>
+                    <MaterialIcons name="chevron-right" size={22} color="#CBD5E1" />
+                </TouchableOpacity>
+
+                {showTimePicker && (
+                    <DateTimePicker
+                        value={time}
+                        mode="time"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={(event, selectedTime) => {
+                            setShowTimePicker(false);
+                            if (selectedTime) setTime(selectedTime);
+                        }}
+                    />
+                )}
+
+                {/* ── Price Summary Card ── */}
+                <Text style={styles.sectionSimpleTitle}>Pricing Estimate</Text>
+                <View style={styles.priceCard}>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.priceRowLabel}>Base Hourly Rate</Text>
+                        <Text style={styles.priceRowValue}>Rs. {provider.rate}.00</Text>
+                    </View>
+                    <View style={styles.priceRow}>
+                        <Text style={styles.priceRowLabel}>Platform Service Fee</Text>
+                        <Text style={styles.priceRowValueFree}>FREE</Text>
+                    </View>
+                    <View style={styles.priceDivider} />
+                    <View style={styles.totalRow}>
+                        <View>
+                            <Text style={styles.totalLabel}>Estimated Total</Text>
+                            <Text style={styles.totalSublabel}>Pay after service completion</Text>
+                        </View>
+                        <Text style={styles.totalValue}>Rs. {provider.rate}</Text>
+                    </View>
+                </View>
+
+                {/* ── Confirm Button ── */}
+                <TouchableOpacity
+                    style={[styles.confirmButton, submitting && styles.confirmButtonDisabled]}
+                    onPress={handleConfirm}
+                    disabled={submitting}
+                    activeOpacity={0.85}
+                >
+                    {submitting ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
+                    ) : (
+                        <MaterialIcons name="check-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                    )}
+                    <Text style={styles.confirmButtonText}>
+                        {submitting ? 'Confirming Appointment...' : 'Confirm Booking'}
+                    </Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 16, paddingTop: 60 },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    providerCard: { padding: 12, backgroundColor: '#F0F0F3', borderRadius: 8, marginBottom: 20 },
-    providerName: { fontSize: 16, fontWeight: '600' },
-    providerType: { color: '#60646C' },
-    sectionTitle: { fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 8 },
-    pickerField: { padding: 14, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, marginBottom: 20 },
-    pickerText: { fontSize: 15, color: '#333' },
-    priceCard: { backgroundColor: '#FDF1E0', padding: 16, borderRadius: 8, marginTop: 10, marginBottom: 24 },
-    priceLabel: { color: '#60646C', fontSize: 12 },
-    priceValue: { fontSize: 22, fontWeight: '700', color: '#EF9F27' },
-    confirmButton: { backgroundColor: '#2563EB', padding: 16, borderRadius: 8, alignItems: 'center', marginBottom: 40 },
-    confirmButtonDisabled: { opacity: 0.6 },
-    confirmButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+    screen: {
+        flex: 1,
+        backgroundColor: '#EEF2F6', // Crisp Slate-Grey canvas
+    },
+    center: {
+        flex: 1,
+        backgroundColor: '#EEF2F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    loadingText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#64748B',
+        marginTop: 12,
+    },
+    backBtn: {
+        marginTop: 16,
+        backgroundColor: '#2563EB',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+    },
+    backBtnText: {
+        color: '#fff',
+        fontWeight: '700',
+    },
+
+    // ── Curved Blue Hero ──
+    blueHeaderSection: {
+        backgroundColor: '#2563EB',
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        paddingBottom: 36,
+        zIndex: 10,
+    },
+    headerTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    headerBackBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerTitleBox: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitleBlue: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#FFFFFF',
+    },
+    headerSubtitleBlue: {
+        fontSize: 12,
+        fontWeight: '500',
+        color: '#BFDBFE',
+        marginTop: 2,
+    },
+
+    // ── Content ──
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 36,
+    },
+
+    // ── Overlapping Provider Card ──
+    floatingProviderCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 18,
+        padding: 16,
+        marginTop: -20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        elevation: 4,
+        marginBottom: 16,
+        zIndex: 20,
+    },
+    avatarPlaceholder: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#EFF6FF',
+        borderWidth: 1.5,
+        borderColor: '#DBEAFE',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    providerName: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0F172A',
+        marginBottom: 3,
+    },
+    servicePill: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#F8FAFC',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    providerType: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#475569',
+    },
+    rateBox: {
+        alignItems: 'flex-end',
+    },
+    rateValue: {
+        fontSize: 17,
+        fontWeight: '800',
+        color: '#2563EB',
+    },
+    rateUnit: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#64748B',
+    },
+
+    // ── Section Titles ──
+    sectionSimpleTitle: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#1E293B',
+        marginBottom: 8,
+        marginTop: 10,
+        marginLeft: 2,
+    },
+
+    // ── Pickers ──
+    pickerField: {
+        backgroundColor: '#FFFFFF',
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        borderRadius: 16,
+        marginBottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        elevation: 1,
+    },
+    pickerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    pickerIconCircle: {
+        width: 42,
+        height: 42,
+        borderRadius: 21,
+        backgroundColor: '#EFF6FF',
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    pickerLabelUpper: {
+        fontSize: 10,
+        fontWeight: '800',
+        color: '#94A3B8',
+        letterSpacing: 0.5,
+        marginBottom: 2,
+    },
+    pickerText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0F172A',
+    },
+
+    // ── Pricing Card ──
+    priceCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 18,
+        padding: 18,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        marginTop: 4,
+        marginBottom: 24,
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    priceRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    priceRowLabel: {
+        fontSize: 14,
+        color: '#64748B',
+        fontWeight: '500',
+    },
+    priceRowValue: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#0F172A',
+    },
+    priceRowValueFree: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#059669',
+        backgroundColor: '#ECFDF5',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+    },
+    priceDivider: {
+        height: 1,
+        backgroundColor: '#F1F5F9',
+        marginVertical: 10,
+    },
+    totalRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 4,
+    },
+    totalLabel: {
+        fontSize: 15,
+        fontWeight: '800',
+        color: '#0F172A',
+    },
+    totalSublabel: {
+        fontSize: 12,
+        color: '#94A3B8',
+        fontWeight: '500',
+    },
+    totalValue: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#2563EB',
+    },
+
+    // ── Confirm Button ──
+    confirmButton: {
+        backgroundColor: '#2563EB',
+        paddingVertical: 16,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    confirmButtonDisabled: {
+        opacity: 0.6,
+    },
+    confirmButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 16,
+    },
 });

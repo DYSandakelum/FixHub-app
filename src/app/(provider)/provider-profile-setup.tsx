@@ -23,24 +23,24 @@ function ProfileHeroSection({ profileImage, pickImage, onBack }: { profileImage:
         <View style={styles.blueHeaderSection}>
             <SafeAreaView edges={['top']} style={{ flex: 0 }} />
             <View style={styles.headerTop}>
-                <TouchableOpacity style={{ padding: 8 }} onPress={onBack}>
-                    <MaterialIcons name="arrow-back" size={24} color="#fff" />
+                <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
+                    <MaterialIcons name="chevron-left" size={26} color="#FFFFFF" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitleBlue}>My Account</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <View style={styles.uploadContainer}>
-                <TouchableOpacity onPress={pickImage} style={{ position: 'relative' }}>
+                <TouchableOpacity onPress={pickImage} style={{ position: 'relative' }} activeOpacity={0.85}>
                     <View style={styles.uploadCircle}>
                         {profileImage ? (
                             <Image source={{ uri: profileImage }} style={styles.profileImage} />
                         ) : (
-                            <MaterialIcons name="person" size={50} color="#2563EB" />
+                            <MaterialIcons name="person" size={54} color="#2563EB" />
                         )}
                     </View>
                     <View style={styles.editIconBadge}>
-                        <MaterialIcons name="edit" size={14} color="#111827" />
+                        <MaterialIcons name="edit" size={13} color="#FFFFFF" />
                     </View>
                 </TouchableOpacity>
             </View>
@@ -138,7 +138,17 @@ export default function ProviderProfileSetupScreen() {
             >
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-                    <Text style={[styles.sectionSimpleTitle, { marginTop: 16 }]}>Personal Info</Text>
+                    {/* ── User Overview & Subtitle Pill ── */}
+                    <View style={styles.profileOverview}>
+                        <Text style={styles.profileDisplayName}>{name}</Text>
+                        <View style={styles.pillBadge}>
+                            <Text style={styles.pillBadgeText}>
+                                {serviceType} · 5 yrs experience
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={[styles.sectionSimpleTitle, { marginTop: 16 }]}>Personal info</Text>
                     {/* ── Personal Info Card ── */}
                     <View style={styles.proProfileCard}>
 
@@ -147,7 +157,7 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => { setEditField({ key: 'name', label: 'Your name', value: name }); setTempValue(name); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="person-outline" size={20} color="#9CA3AF" />
+                                <MaterialIcons name="person" size={20} color="#2563EB" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>YOUR NAME</Text>
@@ -161,7 +171,7 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => { setEditField({ key: 'phone', label: 'Phone Number', value: phone }); setTempValue(phone); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="phone" size={20} color="#9CA3AF" />
+                                <MaterialIcons name="phone" size={20} color="#2563EB" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>PHONE NUMBER</Text>
@@ -178,7 +188,7 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => { setEditField({ key: 'email', label: 'Email Address', value: email }); setTempValue(email); }}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <MaterialIcons name="mail-outline" size={20} color="#9CA3AF" />
+                                <MaterialIcons name="mail" size={20} color="#2563EB" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>EMAIL ADDRESS</Text>
@@ -192,11 +202,14 @@ export default function ProviderProfileSetupScreen() {
                             onPress={() => setPickerType('country')}
                         >
                             <View style={styles.fieldIconCircle}>
-                                <Text style={{ fontSize: 16 }}>{profileCountryFlag}</Text>
+                                <MaterialIcons name="language" size={20} color="#2563EB" />
                             </View>
                             <View style={styles.fieldTextCol}>
                                 <Text style={styles.fieldLabelUpper}>COUNTRY</Text>
-                                <Text style={styles.fieldValueText}>{profileCountryName}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={[styles.fieldValueText, { marginRight: 6 }]}>{profileCountryFlag}</Text>
+                                    <Text style={styles.fieldValueText}>{profileCountryName}</Text>
+                                </View>
                             </View>
                             <MaterialIcons name="chevron-right" size={24} color="#D1D5DB" />
                         </TouchableOpacity>
@@ -426,11 +439,19 @@ const styles = StyleSheet.create({
 
     // Hero Section Styles
     blueHeaderSection: {
-        backgroundColor: '#2563EB',
+        backgroundColor: '#0F172A', // Dark navy matching Screenshot 2
         borderBottomLeftRadius: 40,
         borderBottomRightRadius: 40,
-        paddingBottom: 45,
+        paddingBottom: 55,
         zIndex: 10,
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.14)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     headerTop: {
         flexDirection: 'row',
@@ -440,26 +461,31 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
     headerTitleBlue: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 20,
+        fontWeight: '800',
         color: '#fff',
     },
     uploadContainer: {
         position: 'absolute',
-        bottom: -40,
+        bottom: -46,
         alignSelf: 'center',
         zIndex: 20,
     },
     uploadCircle: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
+        width: 94,
+        height: 94,
+        borderRadius: 47,
         backgroundColor: '#EFF6FF',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
+        borderWidth: 4,
         borderColor: '#fff',
         overflow: 'hidden',
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.14,
+        shadowRadius: 8,
+        elevation: 6,
     },
     profileImage: {
         width: '100%',
@@ -469,27 +495,52 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 2,
         right: 2,
-        backgroundColor: '#fff',
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        backgroundColor: '#2563EB',
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.15,
         shadowRadius: 2,
-        elevation: 2,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
+        elevation: 3,
+    },
+
+    // User Overview Under Avatar
+    profileOverview: {
+        alignItems: 'center',
+        marginTop: 52,
+        marginBottom: 10,
+    },
+    profileDisplayName: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: '#0F172A',
+        letterSpacing: 0.2,
+    },
+    pillBadge: {
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 14,
+        paddingVertical: 5,
+        borderRadius: 20,
+        marginTop: 6,
+    },
+    pillBadgeText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#2563EB',
     },
 
     // Info Labels (Text dividers)
     sectionSimpleTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#4B5563',
-        marginBottom: 8,
+        fontSize: 17,
+        fontWeight: '800',
+        color: '#0F172A',
+        marginBottom: 10,
         marginLeft: 4,
     },
 
@@ -507,12 +558,10 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     fieldIconCircle: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#F1F5F9',
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#EFF6FF',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
