@@ -1,13 +1,22 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Href, useRouter } from 'expo-router';
+import { LoginScreen } from '@/components/auth/login-screen';
 
-export default function LoginScreen() {
-    return (
-        <View style={styles.container}>
-            <Text>Login Screen - TODO</Text>
-        </View>
-    );
+export default function LoginRoute() {
+  const router = useRouter();
+
+  return (
+    <LoginScreen
+      onNavigateToOnboarding={() => router.push('/(auth)/onboarding' as Href)}
+      onNavigateToRegister={() => router.push('/(auth)/register' as Href)}
+      onLoginSuccess={(role) => {
+        if (role === 'provider') {
+          router.replace('/(provider)/provider-dashboard' as Href);
+        } else if (role === 'admin') {
+          router.replace('/(admin)/admin-dashboard' as Href);
+        } else {
+          router.replace('/(customer)/home' as Href);
+        }
+      }}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-});

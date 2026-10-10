@@ -1,14 +1,41 @@
-import { Redirect } from 'expo-router';
+import { Href, Redirect } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useAuth } from '@/context/auth-context';
 
 export default function Index() {
+  const { session, role, isLoading, isOnboarded } = useAuth();
 
-    return <Redirect href="/(customer)/home" />;
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2563EB" />
+      </View>
+    );
+  }
 
-    // return <Redirect href="/(booking)/home" />;
+  if (!session) {
+    if (!isOnboarded) {
+      return <Redirect href={'/(auth)/onboarding' as Href} />;
+    }
+    return <Redirect href={'/(auth)/login' as Href} />;
+  }
 
-    // return <Redirect href="/(admin)/admin-dashboard" />;
+  if (role === 'provider') {
+    return <Redirect href={'/(provider)/provider-dashboard' as Href} />;
+  }
 
-    // return <Redirect href="/(provider)/provider-dashboard" />;
+  if (role === 'admin') {
+    return <Redirect href={'/(admin)/admin-dashboard' as Href} />;
+  }
+
+  return <Redirect href={'/(customer)/home' as Href} />;
 }
 
-// TEMP: testing Home screen directly - change back to /(auth)/onboarding later
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+});
