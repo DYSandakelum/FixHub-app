@@ -2,22 +2,32 @@ import { useEffect, useState } from 'react';
 import i18n, { LangKey } from './i18n';
 
 type SettingsState = {
+    providerName: string;
     country: string;
     serviceCategory: string;
+    serviceArea: string;
     autoAccept: boolean;
     newRequestAlerts: boolean;
+    vacationMode: boolean;
     appLanguage: LangKey;
+    activeJobDetails?: any;
+    baseFee: number;
 };
 
 type Listener = (state: SettingsState) => void;
 
 class SettingsStore {
     private state: SettingsState = {
+        providerName: 'Judith Glavour',
         country: 'Sri Lanka', // Default to Sri Lanka as requested by user's test flow
         serviceCategory: 'Plumbing',
+        serviceArea: 'Colombo District',
         autoAccept: false,
         newRequestAlerts: true,
-        appLanguage: 'English'
+        vacationMode: false,
+        appLanguage: 'English',
+        activeJobDetails: null,
+        baseFee: 2500
     };
     private listeners: Set<Listener> = new Set();
 
@@ -35,8 +45,18 @@ class SettingsStore {
         this.notify();
     }
 
+    setProviderName(providerName: string) {
+        this.state = { ...this.state, providerName };
+        this.notify();
+    }
+
     setServiceCategory(serviceCategory: string) {
         this.state = { ...this.state, serviceCategory };
+        this.notify();
+    }
+
+    setServiceArea(serviceArea: string) {
+        this.state = { ...this.state, serviceArea };
         this.notify();
     }
 
@@ -47,6 +67,21 @@ class SettingsStore {
 
     setNewRequestAlerts(newRequestAlerts: boolean) {
         this.state = { ...this.state, newRequestAlerts };
+        this.notify();
+    }
+
+    setVacationMode(vacationMode: boolean) {
+        this.state = { ...this.state, vacationMode };
+        this.notify();
+    }
+
+    setActiveJobDetails(job: any) {
+        this.state = { ...this.state, activeJobDetails: job };
+        this.notify();
+    }
+
+    setBaseFee(baseFee: number) {
+        this.state = { ...this.state, baseFee };
         this.notify();
     }
 

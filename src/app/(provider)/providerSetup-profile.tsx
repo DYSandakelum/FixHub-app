@@ -6,7 +6,7 @@ import { getRoleNameString, useSettings } from './settingsStore';
 
 export default function ProviderProfileScreen() {
     const router = useRouter();
-    const { serviceCategory } = useSettings();
+    const { serviceCategory, serviceArea, providerName } = useSettings();
 
     return (
         <View style={styles.screen}>
@@ -20,8 +20,8 @@ export default function ProviderProfileScreen() {
                             <Ionicons name="person-outline" size={40} color="#2563EB" />
                         </View>
                         <View style={styles.heroInfo}>
-                            <Text style={styles.heroName}>Judith Glavour</Text>
-                            <Text style={styles.heroSubtitle}>{getRoleNameString(serviceCategory)} · Colombo</Text>
+                            <Text style={styles.heroName}>{providerName}</Text>
+                            <Text style={styles.heroSubtitle}>{getRoleNameString(serviceCategory)} · {serviceArea}</Text>
                         </View>
                     </View>
                 </SafeAreaView>
