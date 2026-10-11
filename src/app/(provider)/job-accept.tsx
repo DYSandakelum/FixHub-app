@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -13,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCurrency } from './settingsStore';
 
 export default function RequestDetailsScreen() {
+    const { t } = useTranslation();
     const { formatCurrency } = useCurrency();
     const router = useRouter();
     const routeCoordinates = [
@@ -124,7 +126,7 @@ export default function RequestDetailsScreen() {
                             <View style={styles.infoRow}>
                                 <View style={styles.iconBox}><MaterialIcons name="calendar-today" size={16} color="#6B7280" /></View>
                                 <View style={styles.infoTextContainer}>
-                                    <Text style={styles.infoLabel}>DATE & TIME</Text>
+                                    <Text style={styles.infoLabel}>{t('DATE & TIME')}</Text>
                                     <Text style={styles.infoValue}>Today, Oct 16 • 2:00 PM - 4:00 PM</Text>
                                 </View>
                             </View>
@@ -132,7 +134,7 @@ export default function RequestDetailsScreen() {
                             <View style={styles.infoRow}>
                                 <View style={styles.iconBox}><Text style={styles.icon}>💳</Text></View>
                                 <View style={styles.infoTextContainer}>
-                                    <Text style={styles.infoLabel}>ESTIMATED PAYOUT</Text>
+                                    <Text style={styles.infoLabel}>{t('Estimated earning')}</Text>
                                     <Text style={styles.payoutValue}>{formatCurrency('85.00')}</Text>
                                 </View>
                             </View>
@@ -140,7 +142,7 @@ export default function RequestDetailsScreen() {
 
                         {/* ── Description of Work ── */}
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Description of Work</Text>
+                            <Text style={styles.sectionTitle}>{t('Description of Work')}</Text>
                         </View>
                         <Text style={styles.descriptionText}>
                             Water dripping beneath the master kitchen sink cupboard. Requires checking the seal and replacing standard trap or pipeline components if split.
@@ -151,10 +153,10 @@ export default function RequestDetailsScreen() {
                 {/* ── Bottom Action Bar ── */}
                 <View style={styles.bottomBar}>
                     <TouchableOpacity style={styles.declineButton} onPress={() => router.back()}>
-                        <Text style={styles.declineButtonText}>Decline</Text>
+                        <Text style={styles.declineButtonText}>{t('Decline')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.acceptButton}>
-                        <Text style={styles.acceptButtonText}>Accept Request</Text>
+                        <Text style={styles.acceptButtonText}>{t('Accept job')}</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

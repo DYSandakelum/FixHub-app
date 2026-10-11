@@ -12,7 +12,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getProviderById } from '../../lib/bookings';
+import { formatProviderRole, getProviderById, getProviderInitials } from '../../lib/bookings';
 
 export default function ProviderProfileScreen() {
     const router = useRouter();
@@ -72,7 +72,7 @@ export default function ProviderProfileScreen() {
                 {/* Overlapping Floating Avatar Circle */}
                 <View style={styles.uploadContainer}>
                     <View style={styles.uploadCircle}>
-                        <MaterialIcons name="person" size={54} color="#2563EB" />
+                        <Text style={styles.uploadInitials}>{getProviderInitials(provider.users?.name)}</Text>
                     </View>
                     {provider.verified && (
                         <View style={styles.verifiedIconBadge}>
@@ -87,6 +87,10 @@ export default function ProviderProfileScreen() {
                 <View style={styles.profileHeaderBox}>
                     <Text style={styles.name}>{provider.users?.name ?? 'Service Provider'}</Text>
                     <View style={styles.badgeRow}>
+                        <View style={styles.roleHeaderBadge}>
+                            <MaterialIcons name="badge" size={13} color="#2563EB" />
+                            <Text style={styles.roleHeaderText}> Service Provider</Text>
+                        </View>
                         {provider.verified ? (
                             <View style={styles.verifiedBadge}>
                                 <MaterialIcons name="verified" size={13} color="#2563EB" />
@@ -110,11 +114,24 @@ export default function ProviderProfileScreen() {
                 <View style={styles.proProfileCard}>
                     <View style={styles.personalInfoField}>
                         <View style={styles.fieldIconCircle}>
+                            <MaterialIcons name="person" size={20} color="#2563EB" />
+                        </View>
+                        <View style={styles.fieldTextCol}>
+                            <Text style={styles.fieldLabelUpper}>USER ROLE</Text>
+                            <Text style={styles.fieldValueText}>Service Provider</Text>
+                        </View>
+                        <MaterialIcons name="check-circle" size={20} color="#2563EB" />
+                    </View>
+
+                    <View style={styles.personalInfoField}>
+                        <View style={styles.fieldIconCircle}>
                             <MaterialIcons name="handyman" size={20} color="#2563EB" />
                         </View>
                         <View style={styles.fieldTextCol}>
-                            <Text style={styles.fieldLabelUpper}>SERVICE CATEGORY</Text>
-                            <Text style={styles.fieldValueText}>{provider.service_type}</Text>
+                            <Text style={styles.fieldLabelUpper}>SERVICE CATEGORY / PROFESSION</Text>
+                            <Text style={styles.fieldValueText}>
+                                {provider.service_type} ({formatProviderRole(provider.service_type)})
+                            </Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={22} color="#CBD5E1" />
                     </View>
@@ -125,7 +142,7 @@ export default function ProviderProfileScreen() {
                         </View>
                         <View style={styles.fieldTextCol}>
                             <Text style={styles.fieldLabelUpper}>EXPERIENCE</Text>
-                            <Text style={styles.fieldValueText}>{provider.experience_years} years in field</Text>
+                            <Text style={styles.fieldValueText}>{provider.experience_years ?? 5} years in field</Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={22} color="#CBD5E1" />
                     </View>
@@ -136,7 +153,7 @@ export default function ProviderProfileScreen() {
                         </View>
                         <View style={styles.fieldTextCol}>
                             <Text style={styles.fieldLabelUpper}>STARTING RATE</Text>
-                            <Text style={styles.fieldValueText}>Rs. {provider.rate} / hour</Text>
+                            <Text style={styles.fieldValueText}>Rs. {provider.rate ?? 2500} / hour</Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={22} color="#CBD5E1" />
                     </View>
@@ -317,11 +334,33 @@ const styles = StyleSheet.create({
         color: '#0F172A',
         textAlign: 'center',
     },
+    uploadInitials: {
+        fontSize: 34,
+        fontWeight: '800',
+        color: '#2563EB',
+    },
     badgeRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: 8,
         marginTop: 8,
+    },
+    roleHeaderBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    roleHeaderText: {
+        color: '#2563EB',
+        fontSize: 11,
+        fontWeight: '700',
     },
     verifiedBadge: {
         flexDirection: 'row',

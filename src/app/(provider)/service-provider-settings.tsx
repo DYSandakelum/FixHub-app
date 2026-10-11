@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/auth-context';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
@@ -5,14 +6,15 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatProviderRole } from '../../lib/bookings';
 import { settingsStore, useSettings } from './settingsStore';
-import { useAuth } from '@/context/auth-context';
 
 export default function ProviderSettingsScreen() {
     const router = useRouter();
-    const { autoAccept, newRequestAlerts, appLanguage, serviceArea, vacationMode } = useSettings();
+    const { autoAccept, newRequestAlerts, appLanguage, serviceArea, vacationMode, serviceCategory } = useSettings();
     const { t } = useTranslation();
-    const { signOut } = useAuth();
+    const { signOut, profile } = useAuth();
+    const activeCategory = profile?.service_category || serviceCategory || 'Cleaning';
 
     const handleLogout = () => {
         Alert.alert('Log Out', 'Are you sure you want to log out of your FixHub account?', [
@@ -94,6 +96,16 @@ export default function ProviderSettingsScreen() {
                 {/* ── WORK PREFERENCES ── */}
                 <Text style={styles.sectionLabel}>{t('WORK PREFERENCES')}</Text>
                 <View style={[styles.cardBlock, { marginBottom: 24 }]}>
+                    <View style={styles.rowItem}>
+                        <View style={styles.iconBox}>
+                            <Feather name="tool" size={20} color="#2563EB" />
+                        </View>
+                        <View style={styles.rowTextCol}>
+                            <Text style={styles.itemTitle}>{t('Service Category')}</Text>
+                        </View>
+                        <Text style={styles.rowRightText}>{formatProviderRole(activeCategory)}</Text>
+                    </View>
+                    <View style={styles.divider} />
                     <TouchableOpacity style={styles.rowItem} onPress={() => { setTempServiceArea(serviceArea); setIsEditingServiceArea(true); }}>
                         <View style={styles.iconBox}>
                             <Feather name="map-pin" size={20} color="#2563EB" />

@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ScrollView,
     StyleSheet,
@@ -15,6 +16,7 @@ import { supabase } from '../../lib/supabase';
 import { useCurrency, useSettings } from './settingsStore';
 
 export default function RequestDetailsScreen() {
+    const { t } = useTranslation();
     const { formatCurrency } = useCurrency();
     const router = useRouter();
     const { activeJobDetails, baseFee } = useSettings();
@@ -133,7 +135,7 @@ export default function RequestDetailsScreen() {
                                 <Text style={styles.avatarInitials}>{initName}</Text>
                             </View>
                             <View style={styles.profileInfo}>
-                                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500', marginBottom: 2 }}>Customer</Text>
+                                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500', marginBottom: 2 }}>{t('Customer')}</Text>
                                 <Text style={styles.profileName}>{customerName}</Text>
                             </View>
                         </View>
@@ -143,7 +145,7 @@ export default function RequestDetailsScreen() {
                             <View style={styles.infoRow}>
                                 <View style={styles.iconBox}><MaterialIcons name="calendar-today" size={16} color="#6B7280" /></View>
                                 <View style={styles.infoTextContainer}>
-                                    <Text style={styles.infoLabel}>DATE & TIME</Text>
+                                    <Text style={styles.infoLabel}>{t('DATE & TIME')}</Text>
                                     <Text style={styles.infoValue}>Today • {activeJobDetails?.time || '2:00 PM'}</Text>
                                 </View>
                             </View>
@@ -151,7 +153,7 @@ export default function RequestDetailsScreen() {
                             <View style={styles.infoRow}>
                                 <View style={styles.iconBox}><Text style={styles.icon}>💳</Text></View>
                                 <View style={styles.infoTextContainer}>
-                                    <Text style={styles.infoLabel}>BASE FEE</Text>
+                                    <Text style={styles.infoLabel}>{t('BASE FEE')}</Text>
                                     <Text style={styles.payoutValue}>{formatCurrency(baseFee)}</Text>
                                 </View>
                             </View>
@@ -159,7 +161,7 @@ export default function RequestDetailsScreen() {
 
                         {/* ── Description of Work ── */}
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Description of Work</Text>
+                            <Text style={styles.sectionTitle}>{t('Description of Work')}</Text>
                         </View>
                         <Text style={styles.descriptionText}>
                             Water dripping beneath the master kitchen sink cupboard. Requires checking the seal and replacing standard trap or pipeline components if split.
@@ -173,27 +175,27 @@ export default function RequestDetailsScreen() {
                         <>
                             <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#D1D5DB' }]} onPress={() => router.push('/(provider)/chat')}>
                                 <MaterialIcons name="chat-bubble-outline" size={20} color="#4B5563" style={{ marginRight: 8 }} />
-                                <Text style={[styles.chatButtonText, { color: '#4B5563' }]}>Message Customer</Text>
+                                <Text style={[styles.chatButtonText, { color: '#4B5563' }]}>{t('Message Customer')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#2563EB', marginTop: 8 }]} onPress={() => setJobStatus('in-progress')}>
                                 <MaterialIcons name="play-arrow" size={20} color="#fff" style={{ marginRight: 8 }} />
-                                <Text style={styles.chatButtonText}>Start Job</Text>
+                                <Text style={styles.chatButtonText}>{t('Start Job')}</Text>
                             </TouchableOpacity>
                         </>
                     ) : jobStatus === 'in-progress' ? (
                         <>
                             <View style={{ padding: 12, backgroundColor: '#EFF6FF', borderRadius: 8, marginBottom: 8, alignItems: 'center' }}>
-                                <Text style={{ color: '#2563EB', fontWeight: 'bold' }}>Job is currently in progress</Text>
+                                <Text style={{ color: '#2563EB', fontWeight: 'bold' }}>{t('Job is currently in progress')}</Text>
                             </View>
                             <TouchableOpacity style={[styles.chatButton, { backgroundColor: '#2563EB' }]} onPress={() => setShowInvoiceModal(true)}>
                                 <MaterialIcons name="check-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
-                                <Text style={styles.chatButtonText}>Complete Job</Text>
+                                <Text style={styles.chatButtonText}>{t('Complete Job')}</Text>
                             </TouchableOpacity>
                         </>
                     ) : (
                         <View style={{ padding: 16, backgroundColor: '#ECFDF5', borderRadius: 8, alignItems: 'center' }}>
                             <MaterialIcons name="check-circle" size={28} color="#059669" style={{ marginBottom: 4 }} />
-                            <Text style={{ color: '#059669', fontWeight: 'bold' }}>Job Completed & Billed</Text>
+                            <Text style={{ color: '#059669', fontWeight: 'bold' }}>{t('Job Completed & Billed')}</Text>
                         </View>
                     )}
                 </View>
@@ -204,7 +206,7 @@ export default function RequestDetailsScreen() {
                         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
                             <View style={{ backgroundColor: '#fff', borderRadius: 16, padding: 24 }}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Finalize Job</Text>
+                                    <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{t('Finalize Job')}</Text>
                                     <TouchableOpacity onPress={() => setShowInvoiceModal(false)}>
                                         <MaterialIcons name="close" size={24} color="#6B7280" />
                                     </TouchableOpacity>

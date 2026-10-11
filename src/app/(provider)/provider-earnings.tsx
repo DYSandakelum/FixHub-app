@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dimensions,
     Modal,
@@ -32,6 +33,7 @@ const PAYMENT_HISTORY: Payment[] = [
 ];
 
 export default function ProviderEarningsScreen() {
+    const { t } = useTranslation();
     const { formatCurrency } = useCurrency();
     const router = useRouter();
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
@@ -148,7 +150,7 @@ export default function ProviderEarningsScreen() {
                     <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                         <MaterialIcons name="chevron-left" size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Earnings</Text>
+                    <Text style={styles.headerTitle}>{t('Earnings')}</Text>
                     <View style={{ width: 44, height: 44 }} />
                 </View>
             </View>
@@ -157,7 +159,7 @@ export default function ProviderEarningsScreen() {
                 {/* ── Summary Card ── */}
                 <View style={[styles.summaryCard, { marginTop: 0 }]}>
                     <View style={styles.summaryHeader}>
-                        <Text style={styles.summaryLabel}>Total Earnings</Text>
+                        <Text style={styles.summaryLabel}>{t('Total Earnings')}</Text>
                         <TouchableOpacity style={styles.filterButton} onPress={openCalendar}>
                             <MaterialIcons name="calendar-today" size={14} color="#2563EB" />
                             <Text style={styles.summaryPeriod}>Sep 9, 2026 - Oct 9, 2026</Text>
@@ -257,7 +259,7 @@ export default function ProviderEarningsScreen() {
 
                     <View style={styles.statsRow}>
                         <View style={styles.statPillGreen}>
-                            <Text style={styles.statPillTextGreen}>12 Jobs Completed</Text>
+                            <Text style={styles.statPillTextGreen}>12 {t('jobs completed')}</Text>
                         </View>
                         <View style={styles.statPillGrey}>
                             <Text style={styles.statPillTextGrey}>Avg: {formatCurrency('3,542')}</Text>
@@ -267,16 +269,16 @@ export default function ProviderEarningsScreen() {
                     <View style={styles.divider} />
 
                     <View style={styles.pendingRow}>
-                        <Text style={styles.pendingLabel}>Pending Payout</Text>
+                        <Text style={styles.pendingLabel}>{t('Pending Payout')}</Text>
                         <Text style={styles.pendingAmount}>{formatCurrency('7,200')}</Text>
                     </View>
                 </View>
 
                 {/* ── Payment History ── */}
                 <View style={styles.historyHeader}>
-                    <Text style={styles.historyTitle}>Payment History</Text>
+                    <Text style={styles.historyTitle}>{t('Payment History')}</Text>
                     <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.viewAllText}>View All</Text>
+                        <Text style={styles.viewAllText}>{t('View All')}</Text>
                         <MaterialIcons name="chevron-right" size={18} color="#2563EB" />
                     </TouchableOpacity>
                 </View>
@@ -307,19 +309,19 @@ export default function ProviderEarningsScreen() {
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-dashboard')}>
                     <MaterialIcons name="dashboard" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Dashboard</Text>
+                    <Text style={styles.navLabel}>{t('Dashboard')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-schedule')}>
                     <MaterialIcons name="calendar-today" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Schedule</Text>
+                    <Text style={styles.navLabel}>{t('Schedule')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
                     <MaterialIcons name="account-balance-wallet" size={24} color="#2563EB" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabelActive}>Earnings</Text>
+                    <Text style={styles.navLabelActive}>{t('Earnings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/providerSetup-profile')}>
                     <MaterialIcons name="person" size={24} color="#9CA3AF" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Profile</Text>
+                    <Text style={styles.navLabel}>{t('Profile')}</Text>
                 </TouchableOpacity>
             </View>
         </View>
