@@ -1,22 +1,24 @@
+import { useAuth } from '@/context/auth-context';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Alert, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getRoleNameString, useSettings } from './settingsStore';
-import { useAuth } from '@/context/auth-context';
 
 export default function ProviderProfileScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
     const { serviceCategory, serviceArea, providerName: settingsProviderName } = useSettings();
     const { user, profile, signOut } = useAuth();
 
-    const providerName = profile?.full_name || user?.user_metadata?.full_name || settingsProviderName || 'Service Provider';
+    const providerName = profile?.full_name || user?.user_metadata?.full_name || settingsProviderName || t('Service Provider');
 
     const handleLogout = () => {
-        Alert.alert('Log Out', 'Are you sure you want to log out of your FixHub account?', [
-            { text: 'Cancel', style: 'cancel' },
+        Alert.alert(t('Log out'), 'Are you sure you want to log out of your FixHub account?', [
+            { text: t('Cancel'), style: 'cancel' },
             {
-                text: 'Log Out',
+                text: t('Log out'),
                 style: 'destructive',
                 onPress: async () => {
                     await signOut();
@@ -50,7 +52,7 @@ export default function ProviderProfileScreen() {
                 <View style={styles.statsCard}>
                     <View style={styles.statCol}>
                         <Text style={styles.statValueText}>128</Text>
-                        <Text style={styles.statLabelText}>Jobs done</Text>
+                        <Text style={styles.statLabelText}>{t('Jobs done')}</Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statCol}>
@@ -58,12 +60,12 @@ export default function ProviderProfileScreen() {
                             <MaterialIcons name="star" size={16} color="#F59E0B" style={{ marginRight: 4 }} />
                             <Text style={styles.statValueText}>4.8</Text>
                         </View>
-                        <Text style={styles.statLabelText}>Rating</Text>
+                        <Text style={styles.statLabelText}>{t('Rating')}</Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statCol}>
                         <Text style={styles.statValueText}>5 yrs</Text>
-                        <Text style={styles.statLabelText}>Experience</Text>
+                        <Text style={styles.statLabelText}>{t('Experience')}</Text>
                     </View>
                 </View>
             </View>
@@ -72,13 +74,13 @@ export default function ProviderProfileScreen() {
                 {/* ── Profile Strength ── */}
                 <View style={[styles.cardBlock, { marginTop: 12 }]}>
                     <View style={styles.strengthHeader}>
-                        <Text style={styles.cardTitle}>Profile strength</Text>
+                        <Text style={styles.cardTitle}>{t('Profile strength')}</Text>
                         <Text style={styles.strengthPercent}>80%</Text>
                     </View>
                     <View style={styles.progressTrack}>
                         <View style={styles.progressFill} />
                     </View>
-                    <Text style={styles.strengthHelperText}>Add a certificate to get more job requests.</Text>
+                    <Text style={styles.strengthHelperText}>{t('Add a certificate to get more job requests.')}</Text>
                 </View>
 
                 {/* ── Nav Menu Card ── */}
@@ -88,8 +90,8 @@ export default function ProviderProfileScreen() {
                             <Ionicons name="person-outline" size={20} color="#2563EB" />
                         </View>
                         <View style={styles.menuTextCol}>
-                            <Text style={styles.menuTitle}>My Account</Text>
-                            <Text style={styles.menuSubtitle}>Name, phone, services and bio</Text>
+                            <Text style={styles.menuTitle}>{t('My Account')}</Text>
+                            <Text style={styles.menuSubtitle}>{t('Name, phone, services and bio')}</Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -99,8 +101,8 @@ export default function ProviderProfileScreen() {
                             <Ionicons name="settings-outline" size={20} color="#2563EB" />
                         </View>
                         <View style={styles.menuTextCol}>
-                            <Text style={styles.menuTitle}>Settings</Text>
-                            <Text style={styles.menuSubtitle}>Hours, notifications, payouts</Text>
+                            <Text style={styles.menuTitle}>{t('Settings')}</Text>
+                            <Text style={styles.menuSubtitle}>{t('Hours, notifications, payouts')}</Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -110,8 +112,8 @@ export default function ProviderProfileScreen() {
                             <Ionicons name="help-circle-outline" size={20} color="#2563EB" />
                         </View>
                         <View style={styles.menuTextCol}>
-                            <Text style={styles.menuTitle}>Help & support</Text>
-                            <Text style={styles.menuSubtitle}>FAQs and contact us</Text>
+                            <Text style={styles.menuTitle}>{t('Help & support')}</Text>
+                            <Text style={styles.menuSubtitle}>{t('FAQs and contact us')}</Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={24} color="#9CA3AF" />
                     </TouchableOpacity>
@@ -120,10 +122,10 @@ export default function ProviderProfileScreen() {
                 {/* ── Log out Button ── */}
                 <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
                     <MaterialIcons name="logout" size={20} color="#DC2626" />
-                    <Text style={styles.logoutBtnText}>Log out</Text>
+                    <Text style={styles.logoutBtnText}>{t('Log out')}</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.versionText}>Version 1.0.0</Text>
+                <Text style={styles.versionText}>{t('Version')} 1.0.0</Text>
 
             </ScrollView>
 
@@ -131,21 +133,21 @@ export default function ProviderProfileScreen() {
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-dashboard')}>
                     <MaterialIcons name="grid-view" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Dashboard</Text>
+                    <Text style={styles.navLabel}>{t('Dashboard')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-schedule')}>
                     <Feather name="calendar" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Schedule</Text>
+                    <Text style={styles.navLabel}>{t('Schedule')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-earnings')}>
                     <MaterialIcons name="account-balance-wallet" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Earnings</Text>
+                    <Text style={styles.navLabel}>{t('Earnings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIconContainer}>
                         <Feather name="user" size={24} color="#2563EB" />
                     </View>
-                    <Text style={styles.navLabelActive}>Profile</Text>
+                    <Text style={styles.navLabelActive}>{t('Profile')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

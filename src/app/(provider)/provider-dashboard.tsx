@@ -1,6 +1,8 @@
+import { useAuth } from '@/context/auth-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Platform,
@@ -14,8 +16,10 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatProviderRole, getProviderBookings, getProviderInitials, updateBookingStatus } from '../../lib/bookings';
 import { supabase } from '../../lib/supabase';
-import { getRoleNameString, settingsStore, useSettings } from './settingsStore';
+import { useJobs } from './jobsStore';
+import { settingsStore, useSettings } from './settingsStore';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -42,7 +46,13 @@ const WORKING_HISTORY = [
 
 export default function ProviderDashboardScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
+    const { user, profile } = useAuth();
+    const storeJobs = useJobs();
     const { serviceCategory, autoAccept, newRequestAlerts, providerName, vacationMode } = useSettings();
+    const providerDisplayName = profile?.full_name || (profile as any)?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || providerName || t('Service Provider');
+    const providerInitials = getProviderInitials(providerDisplayName);
+    const activeCategory = profile?.service_category || serviceCategory || 'Cleaning';
     const isOnline = !vacationMode;
     const [isWaiting, setIsWaiting] = useState(true);
     const [newRequest, setNewRequest] = useState<any>(null);
@@ -54,8 +64,8 @@ export default function ProviderDashboardScreen() {
     const [earningsTotal, setEarningsTotal] = useState(1240.50);
     const [completedJobsCount, setCompletedJobsCount] = useState(14);
 
-    // Static state for the schedule list that gets updated when job is accepted
-    const [scheduledJobs, setScheduledJobs] = useState([
+    // Dynamic state for the schedule list that gets updated when job is accepted or fetched
+    const [scheduledJobs, setScheduledJobs] = useState<any[]>([
         {
             id: '1',
             initial: 'DK',
@@ -68,30 +78,113 @@ export default function ProviderDashboardScreen() {
         }
     ]);
 
-    const handleAcceptJob = (jobPayload?: any) => {
+    const handleAcceptJob = async (jobPayload?: any) => {
         setIsWaiting(true);
+        const jobId = jobPayload?.id || newRequest?.id;
+        const custName = jobPayload?.customerName || newRequest?.customerName || 'New Customer';
+        const sType = jobPayload?.serviceType || jobPayload?.service_title || newRequest?.service_title || 'Service';
+        const sTime = jobPayload?.time || jobPayload?.scheduled_time || newRequest?.scheduled_time || '16:00';
+        const sAddr = jobPayload?.address || newRequest?.address || '1248 Oakwood Dr, Apt 4B';
+
+        if (jobId) {
+            try {
+                await updateBookingStatus(jobId, 'Confirmed');
+            } catch (err) {
+                console.error('Error confirming booking in DB:', err);
+            }
+        }
+
         // Push the accepted job into the schedule
-        setScheduledJobs(prev => [...prev, {
-            id: jobPayload?.id?.toString() || Math.random().toString(),
-            initial: jobPayload?.customerName ? jobPayload.customerName[0] : 'N',
-            customerName: jobPayload?.customerName || 'New Customer',
-            serviceType: jobPayload?.serviceType || jobPayload?.service_title || 'AC repair',
-            time: jobPayload?.time || jobPayload?.scheduled_time || '16:00',
-            address: jobPayload?.address || '1248 Oakwood Dr, Apt 4B',
-            isNext: false,
-            isTomorrow: true,
-        }]);
+        setScheduledJobs(prev => [
+            {
+                id: jobId?.toString() || Math.random().toString(),
+                initial: custName ? custName[0]?.toUpperCase() : 'C',
+                customerName: custName,
+                serviceType: sType,
+                time: sTime,
+                address: sAddr,
+                isNext: prev.length === 0,
+                isTomorrow: false,
+            },
+            ...prev,
+        ]);
         setNewRequest(null);
     };
 
+    // Load existing bookings from Supabase
+    useEffect(() => {
+        async function loadExistingBookings() {
+            try {
+                const bookings = await getProviderBookings(user?.id);
+                if (bookings && bookings.length > 0) {
+                    const pending = bookings.find((b: any) => b.status === 'Pending');
+                    if (pending && !autoAccept) {
+                        setNewRequest({
+                            id: pending.id,
+                            service_title: pending.providers?.service_type || serviceCategory || 'Home Service',
+                            date: pending.service_date,
+                            scheduled_time: pending.service_time,
+                            location: 'Colombo District',
+                            price: pending.price ? Number(pending.price).toLocaleString() : '2,500',
+                            customerName: pending.customer?.name || 'Customer',
+                            address: 'Colombo District',
+                        });
+                        setIsWaiting(false);
+                    }
+
+                    const confirmedList = bookings
+                        .filter((b: any) => b.status === 'Confirmed' || b.status === 'In Progress')
+                        .map((b: any, index: number) => ({
+                            id: b.id,
+                            initial: (b.customer?.name || 'C')[0]?.toUpperCase(),
+                            customerName: b.customer?.name || 'Customer',
+                            serviceType: b.providers?.service_type || serviceCategory || 'Home Service',
+                            time: b.service_time || '10:00 AM',
+                            address: 'Colombo District',
+                            isNext: index === 0,
+                            isTomorrow: false,
+                        }));
+
+                    if (confirmedList.length > 0) {
+                        setScheduledJobs(confirmedList);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load provider bookings:', err);
+            }
+        }
+
+        loadExistingBookings();
+    }, [user?.id, autoAccept, serviceCategory]);
+
+    // Listen to local jobsStore if bookings created in-memory
+    useEffect(() => {
+        if (storeJobs && storeJobs.length > 0) {
+            const latest = storeJobs[0];
+            const alreadyScheduled = scheduledJobs.some(j => j.id === latest.id);
+            if (!alreadyScheduled) {
+                setNewRequest({
+                    id: latest.id,
+                    service_title: latest.serviceType,
+                    date: latest.date,
+                    scheduled_time: latest.time,
+                    location: latest.location,
+                    price: '2,500',
+                    customerName: latest.customerName,
+                    address: latest.location,
+                });
+                setIsWaiting(false);
+            }
+        }
+    }, [storeJobs]);
+
     useEffect(() => {
         if (isOnline && !isWaiting && autoAccept) {
-            // Check if provider is free at the exact time of the new request (simulated at 16:00)
             const isFree = scheduledJobs.every(job => job.time !== '16:00' && job.time !== '4:00 PM');
             if (isFree) {
                 const timer = setTimeout(() => {
                     handleAcceptJob();
-                }, 1500); // Wait 1.5 seconds simulating check before auto accepting
+                }, 1500);
                 return () => clearTimeout(timer);
             }
         }
@@ -99,22 +192,51 @@ export default function ProviderDashboardScreen() {
 
     useEffect(() => {
         if (!isOnline) {
-            // Keep UI offline/waiting if vacation mode is on
             return;
         }
 
+        // Realtime subscription to the actual 'bookings' table
         const requestChannel = supabase
-            .channel('public:job_requests')
+            .channel('public:bookings')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'job_requests' },
-                (payload) => {
-                    console.log('New request received!', payload.new);
+                { event: 'INSERT', schema: 'public', table: 'bookings' },
+                async (payload) => {
+                    console.log('New booking request received in realtime!', payload.new);
+                    // Check if this booking is for this provider (or demo mode)
+                    if (user?.id && payload.new.provider_id && payload.new.provider_id !== user.id) {
+                        return; // Not for this provider
+                    }
+
+                    // Fetch customer's name
+                    let custName = 'Customer';
+                    try {
+                        const { data: userData } = await supabase
+                            .from('users')
+                            .select('name')
+                            .eq('id', payload.new.customer_id)
+                            .maybeSingle();
+                        if (userData?.name) {
+                            custName = userData.name;
+                        }
+                    } catch { }
+
+                    const reqData = {
+                        id: payload.new.id,
+                        service_title: serviceCategory || 'Home Service',
+                        date: payload.new.service_date,
+                        scheduled_time: payload.new.service_time,
+                        location: 'Colombo District',
+                        price: payload.new.price ? Number(payload.new.price).toLocaleString() : '2,500',
+                        customerName: custName,
+                        address: 'Colombo District',
+                    };
+
                     if (autoAccept) {
-                        handleAcceptJob(payload.new);
+                        handleAcceptJob(reqData);
                         setShowNotifications(true);
                     } else {
-                        setNewRequest(payload.new);
+                        setNewRequest(reqData);
                         setIsWaiting(false);
                     }
                 }
@@ -166,7 +288,7 @@ export default function ProviderDashboardScreen() {
             supabase.removeChannel(scheduleChannel);
             supabase.removeChannel(reviewChannel);
         };
-    }, [isOnline, autoAccept]);
+    }, [isOnline, autoAccept, user?.id, serviceCategory]);
 
     return (
         <View style={styles.screen}>
@@ -178,11 +300,11 @@ export default function ProviderDashboardScreen() {
                     <View style={styles.heroTopRow}>
                         <View style={styles.profileSection}>
                             <View style={styles.avatar}>
-                                <Text style={styles.avatarText}>MV</Text>
+                                <Text style={styles.avatarText}>{providerInitials}</Text>
                             </View>
                             <View>
-                                <Text style={styles.profileName}>{providerName}</Text>
-                                <Text style={styles.profileSubtitle}>{getRoleNameString(serviceCategory)} jobs</Text>
+                                <Text style={styles.profileName}>{providerDisplayName}</Text>
+                                <Text style={styles.profileSubtitle}>{t('Service Provider')} · {t(formatProviderRole(activeCategory))}</Text>
                             </View>
                         </View>
                         <View style={styles.actionButtons}>
@@ -201,10 +323,10 @@ export default function ProviderDashboardScreen() {
                             <View style={[styles.statusDot, !isOnline && { backgroundColor: '#94A3B8' }]} />
                             <View>
                                 <Text style={styles.statusTitle}>
-                                    {isOnline ? "You're online" : "You're offline"}
+                                    {isOnline ? t("You're online") : t("You're offline")}
                                 </Text>
                                 <Text style={styles.statusSubtitle}>
-                                    {isOnline ? "Receiving new job requests" : "Vacation mode active"}
+                                    {isOnline ? t("Receiving new job requests") : t("Vacation mode active")}
                                 </Text>
                             </View>
                         </View>
@@ -228,7 +350,7 @@ export default function ProviderDashboardScreen() {
             <View style={styles.earningsCardContainer}>
                 <View style={styles.earningsCard}>
                     <View style={styles.earningsCardHeader}>
-                        <Text style={styles.earningsTitle}>TODAY'S EARNINGS</Text>
+                        <Text style={styles.earningsTitle}>{t("TODAY'S EARNINGS")}</Text>
                         <Text style={styles.earningsDate}>Oct 19, 2026</Text>
                     </View>
 
@@ -239,15 +361,15 @@ export default function ProviderDashboardScreen() {
 
                     <View style={styles.jobsCompletedBadge}>
                         <Feather name="check" size={14} color="#059669" />
-                        <Text style={styles.jobsCompletedText}>{completedJobsCount} jobs completed</Text>
+                        <Text style={styles.jobsCompletedText}>{completedJobsCount} {t("jobs completed")}</Text>
                     </View>
 
                     <View style={styles.earningsDivider} />
 
                     <View style={styles.payoutRow}>
-                        <Text style={styles.payoutText}>Last payment: <Text style={styles.payoutTextBold}>Today, 2:30 PM</Text></Text>
+                        <Text style={styles.payoutText}>{t("Last payment:")} <Text style={styles.payoutTextBold}>{t("Today, 2:30 PM")}</Text></Text>
                         <TouchableOpacity style={styles.breakdownBtn} onPress={() => setShowBreakdown(true)}>
-                            <Text style={styles.breakdownText}>View breakdown</Text>
+                            <Text style={styles.breakdownText}>{t("View breakdown")}</Text>
                             <MaterialIcons name="chevron-right" size={18} color="#2563EB" />
                         </TouchableOpacity>
                     </View>
@@ -264,22 +386,22 @@ export default function ProviderDashboardScreen() {
                 {!isOnline ? (
                     <View style={[styles.newRequestCard, { justifyContent: 'center', alignItems: 'center', minHeight: 220, paddingHorizontal: 30 }]}>
                         <MaterialIcons name="power-settings-new" size={40} color="#9CA3AF" style={{ marginBottom: 16 }} />
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>You are currently offline</Text>
-                        <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>Go online to receive new job requests matching your category.</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>{t('You are currently offline')}</Text>
+                        <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>{t('Go online to receive')}</Text>
                     </View>
                 ) : (isWaiting && !autoAccept) ? (
                     <View style={[styles.newRequestCard, { justifyContent: 'center', alignItems: 'center', minHeight: 220, paddingHorizontal: 30 }]}>
                         <ActivityIndicator size="large" color="#2563EB" style={{ marginBottom: 16 }} />
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>Waiting for new requests...</Text>
-                        <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>Keep your profile active. We'll notify you when a job matches your area.</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111827', marginBottom: 8 }}>{t('Waiting for new requests...')}</Text>
+                        <Text style={{ fontSize: 13, color: '#6B7280', textAlign: 'center', lineHeight: 18, fontWeight: '500' }}>{t("Keep your profile active. We'll notify you when a job matches your area.")}</Text>
                     </View>
                 ) : (newRequest && !autoAccept) ? (
                     <View style={styles.newRequestCard}>
                         <View style={styles.requestCardHeader}>
-                            <Text style={styles.requestTitleText}>New request</Text>
+                            <Text style={styles.requestTitleText}>{t('New request')}</Text>
                             <View style={styles.expiresBadge}>
                                 <Feather name="clock" size={12} color="#B45309" />
-                                <Text style={styles.expiresText}>Expires in 59:00</Text>
+                                <Text style={styles.expiresText}>{t('Expires in')} 59:00</Text>
                             </View>
                         </View>
 
@@ -300,21 +422,21 @@ export default function ProviderDashboardScreen() {
                             </View>
                         </View>
 
-                        <Text style={styles.estimatedEarningLabel}>Estimated earning</Text>
+                        <Text style={styles.estimatedEarningLabel}>{t('Estimated earning')}</Text>
                         <View style={styles.priceRow}>
                             <View style={styles.priceContainer}>
                                 <Text style={styles.priceTextSmall}>Rs </Text>
                                 <Text style={styles.priceTextBig}>{newRequest?.price || newRequest?.amount || '6,500'}</Text>
                             </View>
-                            <Text style={styles.distanceText}>{newRequest?.distance || '3.2 km'} away</Text>
+                            <Text style={styles.distanceText}>{newRequest?.distance || '3.2 km'} {t('away')}</Text>
                         </View>
 
                         <View style={styles.actionsRow}>
                             <TouchableOpacity style={styles.declineBtn} onPress={() => setIsWaiting(true)}>
-                                <Text style={styles.declineBtnText}>Decline</Text>
+                                <Text style={styles.declineBtnText}>{t('Decline')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.acceptBtn} onPress={handleAcceptJob} activeOpacity={0.8}>
-                                <Text style={styles.acceptBtnText}>Accept job</Text>
+                                <Text style={styles.acceptBtnText}>{t('Accept job')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -322,9 +444,9 @@ export default function ProviderDashboardScreen() {
 
                 {/* ── Today's Schedule ── */}
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Today's schedule</Text>
+                    <Text style={styles.sectionTitle}>{t("Today's schedule")}</Text>
                     <View style={styles.blueBadge}>
-                        <Text style={styles.blueBadgeText}>{scheduledJobs.length} jobs</Text>
+                        <Text style={styles.blueBadgeText}>{scheduledJobs.length} {t('jobs')}</Text>
                     </View>
                 </View>
 
@@ -383,19 +505,19 @@ export default function ProviderDashboardScreen() {
                     <View style={styles.activeIconContainer}>
                         <MaterialIcons name="grid-view" size={24} color="#2563EB" />
                     </View>
-                    <Text style={styles.navLabelActive}>Dashboard</Text>
+                    <Text style={styles.navLabelActive}>{t('Dashboard')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-schedule')}>
                     <Feather name="calendar" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Schedule</Text>
+                    <Text style={styles.navLabel}>{t('Schedule')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-earnings')}>
                     <MaterialIcons name="account-balance-wallet" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Earnings</Text>
+                    <Text style={styles.navLabel}>{t('Earnings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/providerSetup-profile')}>
                     <Feather name="user" size={24} color="#6B7280" style={{ marginBottom: 4 }} />
-                    <Text style={styles.navLabel}>Profile</Text>
+                    <Text style={styles.navLabel}>{t('Profile')}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -405,7 +527,7 @@ export default function ProviderDashboardScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={styles.notificationsContainer}>
                         <View style={styles.notificationsHeader}>
-                            <Text style={styles.notificationsTitle}>Notifications</Text>
+                            <Text style={styles.notificationsTitle}>{t('Notifications')}</Text>
                             <TouchableOpacity onPress={() => setShowNotifications(false)}>
                                 <MaterialIcons name="close" size={24} color="#6B7280" />
                             </TouchableOpacity>
@@ -448,7 +570,7 @@ export default function ProviderDashboardScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={styles.notificationsContainer}>
                         <View style={styles.notificationsHeader}>
-                            <Text style={styles.notificationsTitle}>Earnings Breakdown</Text>
+                            <Text style={styles.notificationsTitle}>{t('Earnings Breakdown')}</Text>
                             <TouchableOpacity onPress={() => setShowBreakdown(false)}>
                                 <MaterialIcons name="close" size={24} color="#6B7280" />
                             </TouchableOpacity>
@@ -456,22 +578,22 @@ export default function ProviderDashboardScreen() {
 
                         <View style={{ gap: 12 }}>
                             <View style={styles.breakdownRow}>
-                                <Text style={styles.breakdownLabel}>Base Pay (14 jobs)</Text>
+                                <Text style={styles.breakdownLabel}>{t('Base Pay')} (14 jobs)</Text>
                                 <Text style={styles.breakdownValue}>Rs 1,100.00</Text>
                             </View>
                             <View style={styles.breakdownRow}>
-                                <Text style={styles.breakdownLabel}>Customer Tips</Text>
+                                <Text style={styles.breakdownLabel}>{t('Customer Tips')}</Text>
                                 <Text style={styles.breakdownValue}>Rs 150.50</Text>
                             </View>
                             <View style={styles.breakdownRow}>
-                                <Text style={styles.breakdownLabel}>Platform Fee (5%)</Text>
+                                <Text style={styles.breakdownLabel}>{t('Platform Fee (5%)')}</Text>
                                 <Text style={styles.breakdownValueNegative}>-Rs 10.00</Text>
                             </View>
 
                             <View style={styles.breakdownDivider} />
 
                             <View style={styles.breakdownTotalRow}>
-                                <Text style={styles.breakdownTotalLabel}>Total Earnings</Text>
+                                <Text style={styles.breakdownTotalLabel}>{t('Total Earnings')}</Text>
                                 <Text style={styles.breakdownTotalValue}>Rs 1,240.50</Text>
                             </View>
                         </View>

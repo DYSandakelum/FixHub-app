@@ -1,6 +1,7 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Platform,
     ScrollView,
@@ -16,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProviderScheduleScreen() {
     const router = useRouter();
+    const { t } = useTranslation();
 
     const [selectedDate, setSelectedDate] = useState('2026-10-08');
 
@@ -53,12 +55,12 @@ export default function ProviderScheduleScreen() {
                                 <MaterialIcons name="chevron-left" size={26} color="#fff" />
                             </TouchableOpacity>
                             <View>
-                                <Text style={styles.headerTitle}>My Schedule</Text>
+                                <Text style={styles.headerTitle}>{t('My Schedule')}</Text>
                                 <Text style={styles.headerSubtitle}>{currentMonthText}</Text>
                             </View>
                         </View>
                         <View style={styles.onlineToggleContainer}>
-                            <Text style={styles.onlineText}>ONLINE</Text>
+                            <Text style={styles.onlineText}>{t('ONLINE')}</Text>
                             <Switch
                                 value={true}
                                 trackColor={{ false: '#475569', true: '#10B981' }}
@@ -86,7 +88,7 @@ export default function ProviderScheduleScreen() {
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity style={styles.todayBtn} onPress={() => setSelectedDate('2026-10-08')}>
-                            <Text style={styles.todayBtnText}>Today</Text>
+                            <Text style={styles.todayBtnText}>{t('Today')}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -200,21 +202,21 @@ export default function ProviderScheduleScreen() {
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-dashboard')}>
                     <MaterialIcons name="grid-view" size={24} color="#6B7280" />
-                    <Text style={styles.navLabel}>Dashboard</Text>
+                    <Text style={styles.navLabel}>{t('Dashboard')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItemActive}>
                     <View style={styles.activeIconContainer}>
                         <Feather name="calendar" size={20} color="#2563EB" />
                     </View>
-                    <Text style={styles.navLabelActive}>Schedule</Text>
+                    <Text style={styles.navLabelActive}>{t('Schedule')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/provider-earnings')}>
                     <MaterialIcons name="account-balance-wallet" size={24} color="#6B7280" />
-                    <Text style={styles.navLabel}>Earnings</Text>
+                    <Text style={styles.navLabel}>{t('Earnings')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => router.push('/(provider)/providerSetup-profile')}>
                     <Feather name="user" size={24} color="#6B7280" />
-                    <Text style={styles.navLabel}>Profile</Text>
+                    <Text style={styles.navLabel}>{t('Profile')}</Text>
                 </TouchableOpacity>
             </View>
         </View>

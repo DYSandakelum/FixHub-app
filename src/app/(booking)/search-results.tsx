@@ -14,7 +14,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { searchProviders } from '../../lib/bookings';
+import { formatProviderRole, getProviderInitials, searchProviders } from '../../lib/bookings';
 
 export default function SearchResultsScreen() {
     const router = useRouter();
@@ -116,7 +116,9 @@ export default function SearchResultsScreen() {
                             <View style={styles.cardHeader}>
                                 <View style={styles.avatarWrapper}>
                                     <View style={styles.avatarPlaceholder}>
-                                        <MaterialIcons name="person" size={26} color="#2563EB" />
+                                        <Text style={styles.avatarInitials}>
+                                            {getProviderInitials(item.users?.name)}
+                                        </Text>
                                     </View>
                                     <View style={styles.onlineDot} />
                                 </View>
@@ -140,8 +142,12 @@ export default function SearchResultsScreen() {
                                     </View>
 
                                     <View style={styles.categoryPillRow}>
+                                        <View style={styles.roleBadge}>
+                                            <MaterialIcons name="badge" size={12} color="#2563EB" style={{ marginRight: 3 }} />
+                                            <Text style={styles.roleBadgeText}>Provider</Text>
+                                        </View>
                                         <View style={styles.servicePill}>
-                                            <Text style={styles.providerType}>{item.service_type}</Text>
+                                            <Text style={styles.providerType}>{formatProviderRole(item.service_type)}</Text>
                                         </View>
                                         <View style={styles.ratingBadge}>
                                             <MaterialIcons name="star" size={13} color="#F59E0B" />
@@ -152,7 +158,7 @@ export default function SearchResultsScreen() {
                                     <View style={styles.cardFooter}>
                                         <View style={styles.rateRow}>
                                             <MaterialIcons name="payments" size={15} color="#2563EB" />
-                                            <Text style={styles.providerRate}> Rs. {item.rate}</Text>
+                                            <Text style={styles.providerRate}> Rs. {item.rate ?? 2500}</Text>
                                             <Text style={styles.rateUnit}>/hr</Text>
                                         </View>
                                         <View style={styles.viewBtn}>
@@ -635,5 +641,25 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '700',
         fontSize: 15,
+    },
+    avatarInitials: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#2563EB',
+    },
+    roleBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    roleBadgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#2563EB',
     },
 });

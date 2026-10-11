@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/auth-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,8 +15,8 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { createBooking, getProviderById } from '../../lib/bookings';
-import { useAuth } from '@/context/auth-context';
+import { jobsStore } from '../(provider)/jobsStore';
+import { createBooking, formatProviderRole, getProviderById, getProviderInitials } from '../../lib/bookings';
 
 export default function BookingScreen() {
     const router = useRouter();
@@ -77,12 +78,25 @@ export default function BookingScreen() {
             serviceDate: formatDate(date),
             serviceTime: formatTime(time),
             price: provider.rate,
+            status: 'Pending',
         });
 
         setSubmitting(false);
 
         if (booking) {
-            Alert.alert('Booking Confirmed', `Your booking with ${provider.users?.name} is confirmed.`, [
+            const customerName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Customer';
+            jobsStore.addJob({
+                id: booking.id,
+                customerName: customerName,
+                location: 'Colombo District',
+                time: formatTime(time),
+                serviceType: provider.service_type || 'General Service',
+                initial: customerName[0]?.toUpperCase() || 'C',
+                isNext: false,
+                date: formatDate(date),
+            });
+
+            Alert.alert('Booking Confirmed', `Your booking with ${provider.users?.name} is submitted.`, [
                 { text: 'OK', onPress: () => router.push(`/(transaction)/payment?bookingId=${booking.id}`) },
             ]);
         } else {
@@ -138,16 +152,23 @@ export default function BookingScreen() {
                 {/* ── Floating Overlapping Provider Card ── */}
                 <View style={styles.floatingProviderCard}>
                     <View style={styles.avatarPlaceholder}>
-                        <MaterialIcons name="person" size={28} color="#2563EB" />
+                        <Text style={styles.avatarInitials}>
+                            {getProviderInitials(provider.users?.name)}
+                        </Text>
                     </View>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.providerName}>{provider.users?.name ?? 'Service Provider'}</Text>
-                        <View style={styles.servicePill}>
-                            <Text style={styles.providerType}>{provider.service_type}</Text>
+                        <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                            <View style={styles.roleBadge}>
+                                <Text style={styles.roleBadgeText}>Provider</Text>
+                            </View>
+                            <View style={styles.servicePill}>
+                                <Text style={styles.providerType}>{formatProviderRole(provider.service_type)}</Text>
+                            </View>
                         </View>
                     </View>
                     <View style={styles.rateBox}>
-                        <Text style={styles.rateValue}>Rs. {provider.rate}</Text>
+                        <Text style={styles.rateValue}>Rs. {provider.rate ?? 2500}</Text>
                         <Text style={styles.rateUnit}>/hr</Text>
                     </View>
                 </View>
@@ -361,11 +382,29 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    avatarInitials: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#2563EB',
+    },
     providerName: {
         fontSize: 16,
         fontWeight: '800',
         color: '#0F172A',
         marginBottom: 3,
+    },
+    roleBadge: {
+        backgroundColor: '#EFF6FF',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    roleBadgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: '#2563EB',
     },
     servicePill: {
         alignSelf: 'flex-start',

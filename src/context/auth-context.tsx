@@ -1,20 +1,21 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-} from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { settingsStore } from '@/app/(provider)/settingsStore';
 import {
+  isSupabaseConfigured,
   supabase,
   UserProfile,
   UserRole,
-  isSupabaseConfigured,
 } from '@/lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Session, User } from '@supabase/supabase-js';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { Platform } from 'react-native';
 
 interface CustomerSignUpParams {
   fullName: string;
@@ -72,13 +73,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (userData && !userError) {
+        let serviceCategory = userData.service_category || null;
+        const resolvedName = userData.name || userData.full_name || '';
+        const role = (userData.role as UserRole) || 'customer';
+
+        if (role === 'provider') {
+          const { data: providerData } = await supabase
+            .from('providers')
+            .select('service_type')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+          if (providerData?.service_type) {
+            serviceCategory = providerData.service_type;
+          }
+          if (resolvedName) settingsStore.setProviderName(resolvedName);
+          if (serviceCategory) settingsStore.setServiceCategory(serviceCategory);
+        }
+
         return {
           id: currentUser.id,
           email: currentUser.email || userData.email || '',
-          full_name: userData.name || userData.full_name || '',
+          full_name: resolvedName,
           phone_number: userData.phone || userData.phone_number || '',
-          role: (userData.role as UserRole) || 'customer',
-          service_category: userData.service_category || null,
+          role,
+          service_category: serviceCategory,
         };
       }
 
@@ -90,20 +108,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (data && !error) {
-        return data as UserProfile;
+        const profileData = data as UserProfile;
+        if (profileData.role === 'provider') {
+          const { data: providerData } = await supabase
+            .from('providers')
+            .select('service_type')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+          if (providerData?.service_type) {
+            profileData.service_category = providerData.service_type;
+          }
+          if (profileData.full_name) settingsStore.setProviderName(profileData.full_name);
+          if (profileData.service_category) settingsStore.setServiceCategory(profileData.service_category);
+        }
+        return profileData;
       }
     } catch {
       // Fallback to metadata if database table query fails
     }
 
     const meta = currentUser.user_metadata || {};
+    const role = (meta.role as UserRole) || 'customer';
+    let serviceCategory = meta.service_category || null;
+    const resolvedName = meta.full_name || '';
+
+    if (role === 'provider') {
+      try {
+        const { data: providerData } = await supabase
+          .from('providers')
+          .select('service_type')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+        if (providerData?.service_type) {
+          serviceCategory = providerData.service_type;
+        }
+      } catch { }
+      if (resolvedName) settingsStore.setProviderName(resolvedName);
+      if (serviceCategory) settingsStore.setServiceCategory(serviceCategory);
+    }
+
     return {
       id: currentUser.id,
       email: currentUser.email || '',
-      full_name: meta.full_name || '',
+      full_name: resolvedName,
       phone_number: meta.phone_number || '',
-      role: (meta.role as UserRole) || 'customer',
-      service_category: meta.service_category || null,
+      role,
+      service_category: serviceCategory,
     };
   }, []);
 
